@@ -6,4 +6,4 @@ Directions:
 
 3. Run "Install_Libraries.bat"
 
-4. Run "vgames.py"
+4. Run "vgames.py" using Python.
