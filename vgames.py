@@ -59,8 +59,8 @@ def create_database():
 	"Year"	INTEGER,
 	"CompanyID"	INTEGER,
 	"GenreID"	INTEGER,
-	"Format"	INTEGER CHECK("Format" IN ('Physical', 'Digital')),
-	"Progress"	INTEGER CHECK("Progress" IN ('Complete', 'Incomplete', 'Currently Playing', 'N/A')),
+	"Format"	INTEGER,
+	"Progress"	INTEGER,
 	"Playtime"	NUMERIC,
 	"Date_Completed"	TEXT,
 	"Notes"	TEXT,
@@ -150,7 +150,7 @@ class main_window:
                 self.popup_stats.add_command(label="Games By Genre",command=lambda:stats(self.system_menu_option.get()).Genre())
                 self.popup_stats.add_command(label="Games By Decade",command=lambda:stats(self.system_menu_option.get()).Decade())
                 self.popup_stats.add_separator()
-                self.popup_stats.add_command(label="Complete/Incomplete", command=lambda: stats(self.system_menu_option.get()).Progress())
+                self.popup_stats.add_command(label="Progress", command=lambda: stats(self.system_menu_option.get()).Progress())
                 self.popup_stats.add_command(label="Highest Playtime", command=lambda: stats(self.system_menu_option.get()).Playtime())
                 self.popup_stats.add_separator()
                 self.popup_stats.add_command(label="Top 10 Companies", command=lambda: stats(self.system_menu_option.get()).Top10Companies())
@@ -160,6 +160,7 @@ class main_window:
                 self.popup_update_progress.add_command(label = "Complete", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "Complete"))
                 self.popup_update_progress.add_command(label = "Incomplete", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "Incomplete"))
                 self.popup_update_progress.add_command(label = "Currently Playing", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "Currently Playing"))
+                self.popup_update_progress.add_command(label = "Backlog", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "Backlog"))
                 self.popup_update_progress.add_command(label = "N/A", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "N/A"))
 
                 #Creates EXPORT pop-up menu
@@ -239,7 +240,7 @@ class main_window:
                 self.btn_clear.grid(row=0, column=2, padx=10)
 
                 #Progress Selection Menu
-                values = ['All', 'Complete', 'Incomplete', 'Currently Playing', 'N/A']
+                values = ['All', 'Complete', 'Incomplete', 'Currently Playing', 'Backlog', 'N/A']
                 self.ProgressSelection = StringVar()
                 self.ProgressSelection = ttk.Combobox(self.FrameProgress, values = values, state="readonly")
                 self.ProgressSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
@@ -647,7 +648,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("775x390")
+                self.game_info_window.geometry("775x400")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
         
@@ -738,7 +739,7 @@ class game_info_window:
 
                 self.lbl_Progress = Label (self.framestats, text= "Progress:", fg="white", bg="black")
                 self.lbl_Progress.grid(row = 1, column=0, sticky=E, padx = 5)
-                self.progress_list = ['Incomplete', 'Complete', 'Currently Playing', 'N/A']
+                self.progress_list = ['Incomplete', 'Complete', 'Currently Playing', 'Backlog', 'N/A']
                 self.txt_Progress = ttk.Combobox(self.framestats, value = self.progress_list, state="readonly", width = 15)
                 self.txt_Progress.grid(row = 1, column= 1, sticky=W)
 
@@ -1424,9 +1425,9 @@ class stats:
     
         def Progress(self):
                 if self.SystemName == "%":
-                        Title = "Complete/Incomplete - All Systems"
+                        Title = "Progress - All Systems"
                 else:
-                        Title = "Complete/Incomplete - " + self.SystemName
+                        Title = "Progress - " + self.SystemName
                 plt.figure(Title)
                 plt.get_current_fig_manager().window.state('zoomed')
                 self.df.Progress.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
