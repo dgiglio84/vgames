@@ -63,6 +63,7 @@ def create_database():
 	"Progress"	INTEGER,
 	"Playtime"	NUMERIC,
 	"Date_Completed"	TEXT,
+        "Rating"	NUMERIC,
 	"Notes"	TEXT,
 	PRIMARY KEY("GameID"),
 	FOREIGN KEY("GenreID") REFERENCES "tbl_Genre"("GenreID"),
@@ -266,7 +267,7 @@ class main_window:
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
                 self.games_list = ttk.Treeview(self.FrameGames, height = 19)
-                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress', 'Notes')
+                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress')
 
                 self.games_list.column("#0", width=0, stretch=NO)
                 self.games_list.column("System",anchor=W, width=150)
@@ -276,7 +277,7 @@ class main_window:
                 self.games_list.column("Genre",anchor=W,width=150)
                 self.games_list.column("Format",anchor=W,width=100)
                 self.games_list.column("Progress",anchor=W,width=120)
-                self.games_list.column("Notes",anchor=W,width=60)
+                # self.games_list.column("Notes",anchor=W,width=60)
 
                 self.games_list.heading("#0",text="",anchor=W)
                 self.games_list.heading("System",text="System",anchor=W, command=lambda: self.sort_column (self.games_list, "System", False))
@@ -286,10 +287,11 @@ class main_window:
                 self.games_list.heading("Genre",text="Genre",anchor=W, command=lambda: self.sort_column (self.games_list, "Genre", False))
                 self.games_list.heading("Format",text="Format",anchor=W, command=lambda: self.sort_column (self.games_list, "Format", False))
                 self.games_list.heading("Progress",text="Progress",anchor=W, command=lambda: self.sort_column (self.games_list, "Progress", False))
-                self.games_list.heading("Notes",text="Notes",anchor=W, command=lambda: self.sort_column (self.games_list, "Notes", False))
+                # self.games_list.heading("Notes",text="Notes",anchor=W, command=lambda: self.sort_column (self.games_list, "Notes", False))
 
                 self.games_list.grid(row=0, column=0)
 
+                #Games list bindings
                 self.games_list.bind("<Double-Button-1>", lambda event: game_info_window(self).view_game_window(self.games_list.focus()))
                 self.games_list.bind("<Button-3>", lambda event: main_window_popup_menu (self, event).Right_Click())
 
@@ -445,13 +447,13 @@ class main_window:
                 #Displays all games in Treeview. NOTE: The iid is set to the GameID in the DB.
                 gamecount = 0
                 for column in Records:
-                        if column[8] != "":
-                                NoteIndicator = "*"
-                        else:
-                                NoteIndicator = ""
+                        # if column[8] != "":
+                        #         NoteIndicator = "*"
+                        # else:
+                        #         NoteIndicator = ""
 
                         self.games_list.insert("", index='end',iid=column[0], text="",
-                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], NoteIndicator))
+                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7]))
                         gamecount += 1
 
                 #Sends number of games to 'update_game_count' function   
@@ -507,10 +509,8 @@ class main_window:
                         FROM tbl_Games
                         WHERE GameID = ?""", (GameID,))  
                
-                print (old_game)
-
                 #Duplicates game
-                database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Notes)",
+                database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
                         {
 
                         'SystemID': old_game[1],
@@ -522,6 +522,7 @@ class main_window:
                         'Progress': old_game[7],                       
                         'Playtime': old_game[8],
                         'Date_Completed': "",
+                        'Rating': "",
                         'Notes': old_game[10]                                
                         })
                 
@@ -693,12 +694,12 @@ class game_info_window:
     
                 self.btn_quick_search = Button(
                         self.frametitle,
-                        text = "Quick Search",
+                        text = "Search Web",
                         width = 10,
                         height= 1,
                         bg="green",
                         fg="white",
-                        command=lambda: self.quick_search(self.txt_system.get(), self.txt_title.get())
+                        command=lambda: self.search_web(self.txt_system.get(), self.txt_title.get())
                 
                 ) 
 
@@ -754,6 +755,12 @@ class game_info_window:
                 self.txt_Date_Completed.grid(row = 3, column= 1, sticky=W)
                 self.txt_Date_Completed.delete (0, END)
                 self.txt_Date_Completed.config(state='readonly')
+
+                self.lbl_Rating = Label (self.framestats, text= "Rating:", fg="white", bg="black")
+                self.lbl_Rating.grid(row = 4, column=0, sticky=E, padx = 5)
+                self.ratings_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                self.txt_Rating = ttk.Combobox(self.framestats, value = self.ratings_list, width = 5)
+                self.txt_Rating.grid(row = 4, column= 1, sticky=W)
 
                 #Button to clear the "Date Completed" field
                 self.btn_clear_Date_Completed = Button (
@@ -833,7 +840,7 @@ class game_info_window:
                         return
 
                 #Grabs current Treeview selection record data.
-                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Playtime, Date_Completed, tbl_Games.Notes 
+                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Playtime, Date_Completed, Rating, tbl_Games.Notes 
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -842,10 +849,10 @@ class game_info_window:
                                 ORDER BY SystemName, Title""", (GameID,))  
 
                 #Inserts old fields
-                self.txt_system.set (old_field[1])
-                self.txt_title.insert (0, old_field[2])
-                self.txt_year.insert (0, old_field[3])
-                self.txt_Company.set (old_field[4])
+                self.txt_system.set(old_field[1])
+                self.txt_title.insert(0, old_field[2])
+                self.txt_year.insert(0, old_field[3])
+                self.txt_Company.set(old_field[4])
                 self.txt_Genre.set(old_field[5])
                 self.txt_Progress.set(old_field[6])
                 self.txt_Format.set(old_field[7])
@@ -855,10 +862,12 @@ class game_info_window:
                 self.txt_Date_Completed.config(state=NORMAL)
                 self.txt_Date_Completed.insert(0, old_field[9])      
                 self.txt_Date_Completed.config(state='readonly')
+
+                self.txt_Rating.set(old_field[10])
                 
                 #Only show 'Notes' text if not empty.
-                if old_field[9] is not None:
-                        self.txt_Notes.insert(0, old_field[10])
+                if old_field[11] is not None:
+                        self.txt_Notes.insert(0, old_field[11])
 
                 btn_update = Button(
                         self.framebuttons,
@@ -970,38 +979,40 @@ class game_info_window:
                 #Creates a new record
                 if New:
 
-                        database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Notes)",
-                                        {
-                                        'SystemID': SystemID[0],
-                                        'Title': self.txt_title.get(),
-                                        'Year': self.txt_year.get(),
-                                        'CompanyID': CompanyID[0],
-                                        'GenreID': GenreID[0],
-                                        'Format': self.txt_Format.get(),
-                                        'Progress': self.txt_Progress.get(),
-                                        'Playtime': self.txt_Playtime.get(),
-                                        'Date_Completed': self.txt_Date_Completed.get(),
-                                        'Notes': self.txt_Notes.get()                                
-                                        })
+                        database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
+                                {
+                                'SystemID': SystemID[0],
+                                'Title': self.txt_title.get(),
+                                'Year': self.txt_year.get(),
+                                'CompanyID': CompanyID[0],
+                                'GenreID': GenreID[0],
+                                'Format': self.txt_Format.get(),
+                                'Progress': self.txt_Progress.get(),
+                                'Playtime': self.txt_Playtime.get(),
+                                'Date_Completed': self.txt_Date_Completed.get(),
+                                'Rating': self.txt_Rating.get(),
+                                'Notes': self.txt_Notes.get()                                
+                                })
                                         
                         messagebox.showinfo ("New Game", "Game Saved!")
                 
                 #Updates record
                 else:
                         
-                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Progress = :Progress, Playtime = :Playtime, Date_Completed = :Date_Completed, Notes = :Notes WHERE GameID = :GameID",
+                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Progress = :Progress, Playtime = :Playtime, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
                         {
-                        'SystemID': SystemID[0],
-                        'Title': self.txt_title.get(),
-                        'Year': self.txt_year.get(),
-                        'Company': CompanyID[0],
-                        'GenreID': GenreID[0],
-                        'Format': self.txt_Format.get(),
-                        'Notes': self.txt_Notes.get(),
-                        'Progress': self.txt_Progress.get(),
-                        'Playtime': self.txt_Playtime.get(),
-                        'Date_Completed': self.txt_Date_Completed.get(),
-                        'GameID': GameID
+                                'SystemID': SystemID[0],
+                                'Title': self.txt_title.get(),
+                                'Year': self.txt_year.get(),
+                                'Company': CompanyID[0],
+                                'GenreID': GenreID[0],
+                                'Format': self.txt_Format.get(),
+                                'Notes': self.txt_Notes.get(),
+                                'Progress': self.txt_Progress.get(),
+                                'Playtime': self.txt_Playtime.get(),
+                                'Date_Completed': self.txt_Date_Completed.get(),
+                                'Rating': self.txt_Rating.get(),
+                                'GameID': GameID
                         })
 
                         messagebox.showinfo ("Update Game", "Game Updated!")
@@ -1026,9 +1037,9 @@ class game_info_window:
                         game_info_window(self.main_window).new_game_window(self.main_window.system_menu_option.get(), self.main_window.FormatSelection.get())
 
 
-        def quick_search(self, SystemName, Title):
+        def search_web(self, SystemName, Title):
                 if SystemName == "" or Title == "":
-                        messagebox.showwarning ("Quick Search", "You must fill out both SYSTEM and TITLE!")
+                        messagebox.showwarning ("Search Web", "You must fill out both System and Title!")
                         return
                 
                 webbrowser.open("https://www.google.com/search?q=" + Title + " " + SystemName)
@@ -1371,7 +1382,7 @@ class export:
         def __init__(self):
                 #Creates Panadas Dataframe with all records
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Notes
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating, Notes
                 FROM tbl_Games
                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
