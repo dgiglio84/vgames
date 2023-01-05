@@ -1,6 +1,3 @@
-# vgames
-Video Games Database
-
 UPDATE: 1-4-2023
 - Added a "View" selection on the main window to filter between Game Info and Stats.
 - Added a "Rating" field.
