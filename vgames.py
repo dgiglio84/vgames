@@ -110,7 +110,7 @@ def create_database():
         for row in DBGenres:
                 DBGenresList.append(row[0])
 
-        DefaultGenres = ['Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
+        DefaultGenres = ['', 'Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
         for Genre in DefaultGenres:
                 if Genre not in DBGenresList:
                         database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, ?)", (Genre,))
@@ -164,6 +164,19 @@ class main_window:
                 self.popup_update_progress.add_command(label = "Backlog", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "Backlog"))
                 self.popup_update_progress.add_command(label = "N/A", command=lambda: self.update_right_click(self.games_list.focus(), "Progress", "N/A"))
 
+                #Creates UPDATE RATING pop-up menu
+                self.popup_update_rating = Menu(master, tearoff = 0)
+                self.popup_update_rating.add_command(label = "1", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 1))
+                self.popup_update_rating.add_command(label = "2", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 2))
+                self.popup_update_rating.add_command(label = "3", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 3))
+                self.popup_update_rating.add_command(label = "4", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 4))
+                self.popup_update_rating.add_command(label = "5", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 5))
+                self.popup_update_rating.add_command(label = "6", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 6))
+                self.popup_update_rating.add_command(label = "7", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 7))
+                self.popup_update_rating.add_command(label = "8", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 8))
+                self.popup_update_rating.add_command(label = "9", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 9))
+                self.popup_update_rating.add_command(label = "10", command=lambda: self.update_right_click(self.games_list.focus(), "Rating", 10))
+
                 #Creates EXPORT pop-up menu
                 self.popup_export = Menu(master, tearoff = 0)
                 self.popup_export.add_command(label = "CSV", command=lambda: export().csv())
@@ -178,6 +191,7 @@ class main_window:
                 self.popup_right_click.add_cascade(label="Search Web", menu=self.popup_search_web)
                 self.popup_right_click.add_separator()
                 self.popup_right_click.add_cascade(label="Update Progress", menu=self.popup_update_progress)
+                self.popup_right_click.add_cascade(label="Update Rating", menu=self.popup_update_rating)
 
                 #---------------------------FRAMES--------------------------------
 
@@ -201,6 +215,10 @@ class main_window:
                 self.FrameSearch=LabelFrame(self.FrameTop, text="Search", padx=5, pady=5, fg="yellow", bg="black")
                 self.FrameSearch.pack (side=LEFT, padx=5, pady=5)
 
+                #Creates View box frame
+                self.FrameView=LabelFrame(self.FrameTop, text="View", padx=5, pady=5, fg="yellow", bg="black")
+                self.FrameView.pack (side=LEFT, padx=5, pady=5)
+
                 #Games list frame
                 self.FrameGames=LabelFrame(master, padx=5, pady=5)
                 self.FrameGames.pack (side=TOP, padx=5, pady=5)
@@ -218,14 +236,14 @@ class main_window:
                         systems_menu.append(row[0])
                 self.system_menu_option = StringVar()
                 self.system_menu_option = ttk.Combobox(self.FrameSystemSelect, values = systems_menu, state="readonly")
-                self.system_menu_option.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
+                self.system_menu_option.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
                 self.system_menu_option.set("All")
                 self.system_menu_option.grid(row=0,column=0) 
 
                 #Search bar
                 self.txt_search_bar = Entry(self.FrameSearch, width = 50)
-                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
-                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
+                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
+                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
                 self.txt_search_bar.grid(row=0, column=1)
 
                 #Clear button
@@ -244,7 +262,7 @@ class main_window:
                 values = ['All', 'Complete', 'Incomplete', 'Currently Playing', 'Backlog', 'N/A']
                 self.ProgressSelection = StringVar()
                 self.ProgressSelection = ttk.Combobox(self.FrameProgress, values = values, state="readonly")
-                self.ProgressSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
+                self.ProgressSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
                 self.ProgressSelection.set("All")
                 self.ProgressSelection.grid(row=0,column=0) 
 
@@ -253,10 +271,18 @@ class main_window:
                 values = ['All', 'Physical', 'Digital']
                 col = 0
                 for value in values:
-                        self.rbt_Progress = Radiobutton (self.FrameFormat, text = value, value = value, variable = self.FormatSelection, bg='black', fg= 'white', selectcolor="red", command = lambda: self.update_game_list (self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get()))
+                        self.rbt_Progress = Radiobutton (self.FrameFormat, text = value, value = value, variable = self.FormatSelection, bg='black', fg= 'white', selectcolor="red", command = self.update_game_list)
                         self.rbt_Progress.grid(row = 0, column = col)
                         col +=1
                 self.FormatSelection.set('All')
+
+                #View Menu
+                values = ['Game Info', 'Stats']
+                self.ViewSelection = StringVar()
+                self.ViewSelection = ttk.Combobox(self.FrameView, values = values, state="readonly")
+                self.ViewSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
+                self.ViewSelection.set("Game Info")
+                self.ViewSelection.grid(row=0,column=0) 
 
 
                 #------------------------GAMES LIST--------------------------------
@@ -266,18 +292,24 @@ class main_window:
                 style.theme_use("clam")
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
-                self.games_list = ttk.Treeview(self.FrameGames, height = 19)
-                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress')
+                self.games_list = ttk.Treeview(self.FrameGames, height = 20)
+                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress', 'Playtime', 'Date Completed', 'Rating')
 
                 self.games_list.column("#0", width=0, stretch=NO)
+
+                # 'Game Info' columns
                 self.games_list.column("System",anchor=W, width=150)
                 self.games_list.column("Title",anchor=W,width=350)
                 self.games_list.column("Year",anchor=W,width=50)
                 self.games_list.column("Company",anchor=W,width=150)
                 self.games_list.column("Genre",anchor=W,width=150)
                 self.games_list.column("Format",anchor=W,width=100)
+
+                # 'Stats' columns
                 self.games_list.column("Progress",anchor=W,width=120)
-                # self.games_list.column("Notes",anchor=W,width=60)
+                self.games_list.column("Playtime",anchor=W,width=100)
+                self.games_list.column("Date Completed",anchor=W,width=100)
+                self.games_list.column("Rating",anchor=W,width=100)
 
                 self.games_list.heading("#0",text="",anchor=W)
                 self.games_list.heading("System",text="System",anchor=W, command=lambda: self.sort_column (self.games_list, "System", False))
@@ -287,8 +319,10 @@ class main_window:
                 self.games_list.heading("Genre",text="Genre",anchor=W, command=lambda: self.sort_column (self.games_list, "Genre", False))
                 self.games_list.heading("Format",text="Format",anchor=W, command=lambda: self.sort_column (self.games_list, "Format", False))
                 self.games_list.heading("Progress",text="Progress",anchor=W, command=lambda: self.sort_column (self.games_list, "Progress", False))
-                # self.games_list.heading("Notes",text="Notes",anchor=W, command=lambda: self.sort_column (self.games_list, "Notes", False))
-
+                self.games_list.heading("Playtime",text="Playtime",anchor=W, command=lambda: self.sort_column (self.games_list, "Playtime", False))
+                self.games_list.heading("Date Completed",text="Date Completed",anchor=W, command=lambda: self.sort_column (self.games_list, "Date Completed", False))
+                self.games_list.heading("Rating",text="Rating",anchor=W, command=lambda: self.sort_column (self.games_list, "Rating", False))
+             
                 self.games_list.grid(row=0, column=0)
 
                 #Games list bindings
@@ -300,7 +334,7 @@ class main_window:
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
                 #Initial update of the Treeview Games list
-                self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get())
+                self.update_game_list()
 
                 #Adds scrollbar to Treeview Games list
                 self.games_list_scrollbar = ttk.Scrollbar(self.FrameGames, orient=VERTICAL, command=self.games_list.yview)
@@ -413,18 +447,25 @@ class main_window:
                 self.btn_wishlist.config (text= "Wish List (" + str(initial_wishlist_count) + ")")
 
         
-        def update_game_list(self, SystemName, SearchString, Progress, Format):
+        def update_game_list(self):
                 
                 #Clears current Treeview
                 x = self.games_list.get_children()
                 for item in x:
                         self.games_list.delete(item)
 
-                #Sets values when "All" is selected as System
+                #Creates local variables based on main window selections
+                SystemName = self.system_menu_option.get()
+                SearchString = self.txt_search_bar.get()
+                Progress = self.ProgressSelection.get()
+                Format = self.FormatSelection.get()
+                View = self.ViewSelection.get()
+
+                #Sets SystemName variable to wildcard when "All" is selected
                 if SystemName == "All":
                         SystemName = "%"
 
-                #Sets value when Search box is empty
+                #Sets SearchString variable to wildcard when Search box is empty
                 if SearchString == "":
                         SearchString = "%"
 
@@ -436,7 +477,7 @@ class main_window:
                 if Format == "All":
                         Format = "%"
 
-                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Notes
+                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating
                         FROM tbl_Games
                         LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                         LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
@@ -447,14 +488,15 @@ class main_window:
                 #Displays all games in Treeview. NOTE: The iid is set to the GameID in the DB.
                 gamecount = 0
                 for column in Records:
-                        # if column[8] != "":
-                        #         NoteIndicator = "*"
-                        # else:
-                        #         NoteIndicator = ""
-
                         self.games_list.insert("", index='end',iid=column[0], text="",
-                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7]))
+                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10]))
                         gamecount += 1
+
+                #Sets Treeview columns based on "View" combo box
+                if View == "Game Info":
+                        self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format")
+                if View == "Stats":
+                        self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Completed", "Rating")
 
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
@@ -499,7 +541,7 @@ class main_window:
                         #Updates variable to indicate changes have been made
                         self.changes = True
 
-                        self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get())
+                        self.update_game_list()
                         self.update_systems_menu()
 
         def duplicate_game(self, GameID):
@@ -531,7 +573,7 @@ class main_window:
                 #Updates variable to indicate changes have been made
                 self.changes = True
 
-                self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get())
+                self.update_game_list()
 
                 #Grabs new GameID (the latest record) and opens it in a new window
                 LastRecord = database().fetchone("SELECT GameID FROM tbl_Games ORDER BY GameID DESC LIMIT 1")
@@ -548,10 +590,13 @@ class main_window:
                 if Field == "Progress":
                         database().execute("UPDATE tbl_Games SET Progress = ? WHERE GameID = ?", (Value, GameID,))
 
+                if Field == "Rating":
+                        database().execute("UPDATE tbl_Games SET Rating = ? WHERE GameID = ?", (Value, GameID,))
+
                 #Updates variable to indicate changes have been made
                 self.changes = True
 
-                self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get())
+                self.update_game_list()
 
         def search_web(self, GameID, Website):
                 
@@ -594,7 +639,7 @@ class main_window:
                 self.txt_search_bar.delete(0, END)
                 self.ProgressSelection.set("All")
                 self.FormatSelection.set("All")
-                self.update_game_list(self.system_menu_option.get(), self.txt_search_bar.get(), self.ProgressSelection.get(), self.FormatSelection.get())
+                self.update_game_list()
 
        
 
@@ -941,9 +986,9 @@ class game_info_window:
 
         def save_game(self, GameID, New, SaveAndNew):
                 
-                #Checks if data is entered in all required fields
-                if self.txt_system.get() == "" or self.txt_title.get() == "" or self.txt_year.get()== "" or self.txt_Company.get()=="" or self.txt_Genre.get()== "" or self.txt_Progress.get() == "" or self.txt_Format.get() == "":
-                        messagebox.showwarning ("Video Games Database", "Please fill out all required fields!")
+                #Checks if System and Title are entered
+                if self.txt_system.get() == "" or self.txt_title.get() == "":
+                        messagebox.showwarning ("Video Games Database", "System and Title must be filled out!")
                         self.game_info_window.focus_force()
                         return
 
@@ -1029,7 +1074,7 @@ class game_info_window:
 
                 self.game_info_window.destroy()
 
-                self.main_window.update_game_list(self.main_window.system_menu_option.get(), self.main_window.txt_search_bar.get(), self.main_window.ProgressSelection.get(), self.main_window.FormatSelection.get())
+                self.main_window.update_game_list()
                 self.main_window.update_systems_menu()
 
                 #Opens another 'New Game' window if "Save and New" is pressed
@@ -1426,7 +1471,7 @@ class stats:
                         
                 #Creates Pandas DataFrame from SQL query
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
