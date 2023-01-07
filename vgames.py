@@ -52,46 +52,61 @@ class database:
 
 def create_database():
 
+        #Creates tables
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_Games" (
-	"GameID"	INTEGER,
-	"SystemID"	INTEGER,
-	"Title"	TEXT,
-	"Year"	INTEGER,
-	"CompanyID"	INTEGER,
-	"GenreID"	INTEGER,
-	"Format"	INTEGER,
-	"Progress"	INTEGER,
-	"Playtime"	NUMERIC,
-	"Date_Completed"	TEXT,
-        "Rating"	NUMERIC,
-	"Notes"	TEXT,
+	"GameID"	INTEGER NOT NULL DEFAULT '',
+	"SystemID"	INTEGER NOT NULL DEFAULT '',
+	"Title"	TEXT NOT NULL DEFAULT '',
+	"Year"	INTEGER NOT NULL DEFAULT '',
+	"CompanyID"	INTEGER NOT NULL DEFAULT '',
+	"GenreID"	INTEGER NOT NULL DEFAULT '',
+	"Format"	INTEGER NOT NULL DEFAULT '',
+	"Progress"	INTEGER NOT NULL DEFAULT '',
+	"Playtime"	NUMERIC NOT NULL DEFAULT '',
+	"Date_Completed"	TEXT NOT NULL DEFAULT '',
+	"Rating"	NUMERIC NOT NULL DEFAULT '',
+	"Notes"	TEXT NOT NULL DEFAULT '',
 	PRIMARY KEY("GameID"),
-	FOREIGN KEY("GenreID") REFERENCES "tbl_Genre"("GenreID"),
 	FOREIGN KEY("SystemID") REFERENCES "tbl_System"("SystemID"),
-	FOREIGN KEY("CompanyID") REFERENCES "tbl_Company"("CompanyID"))""")
+	FOREIGN KEY("CompanyID") REFERENCES "tbl_Company"("CompanyID"),
+	FOREIGN KEY("GenreID") REFERENCES "tbl_Genre"("GenreID")
+);""")
 
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_Company" (
-                "CompanyID"	INTEGER,
-                "CompanyName"	TEXT,
-                PRIMARY KEY("CompanyID" AUTOINCREMENT))""")
+	"CompanyID"	INTEGER NOT NULL,
+	"CompanyName"	TEXT NOT NULL,
+	PRIMARY KEY("CompanyID" AUTOINCREMENT))""")
 
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_WishList" (
-                "WishListID"	INTEGER,
-                "SystemID"	INTEGER,
-                "Title"	TEXT,
-                FOREIGN KEY("SystemID") REFERENCES "tbl_System"("SystemID"),
-                PRIMARY KEY("WishListID"))""")
+	"WishListID"	INTEGER NOT NULL,
+	"SystemID"	INTEGER NOT NULL,
+	"Title"	TEXT NOT NULL,
+	PRIMARY KEY("WishListID"),
+	FOREIGN KEY("SystemID") REFERENCES "tbl_System"("SystemID"))""")
 
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_Genre" (
-                "GenreID"	INTEGER,
-                "GenreName"	TEXT,
-                PRIMARY KEY("GenreID" AUTOINCREMENT))""")
+	"GenreID"	INTEGER NOT NULL,
+	"GenreName"	TEXT NOT NULL,
+	PRIMARY KEY("GenreID"))""")
 
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_System" (
-                "SystemID"	INTEGER,
-                "SystemName"	TEXT,
-                PRIMARY KEY("SystemID" AUTOINCREMENT))""")
+	"SystemID"	INTEGER NOT NULL,
+	"SystemName"	TEXT NOT NULL,
+	PRIMARY KEY("SystemID" AUTOINCREMENT))""")
 
+        #Adds newer columns to tbl_Games. If the column already exists, it is skipped.
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN Playtime NUMERIC NOT NULL DEFAULT ''")
+        except:
+                print ("Playtime column already exists.")              
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Completed TEXT NOT NULL DEFAULT ''")
+        except:
+                print ("Date_Completed column already exists.")               
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN Rating NUMERIC NOT NULL DEFAULT ''")
+        except:	
+                print ("Rating column already exists.")
 
         #Creates default Systems (if they don't exist)
         DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
@@ -909,10 +924,7 @@ class game_info_window:
                 self.txt_Date_Completed.config(state='readonly')
 
                 self.txt_Rating.set(old_field[10])
-                
-                #Only show 'Notes' text if not empty.
-                if old_field[11] is not None:
-                        self.txt_Notes.insert(0, old_field[11])
+                self.txt_Notes.insert(0, old_field[11])
 
                 btn_update = Button(
                         self.framebuttons,
@@ -949,38 +961,6 @@ class game_info_window:
                 
                 ) 
                 btn_cancel.grid(row=0, column=2, padx=5, pady=5)
-
-                self.game_info_window.mainloop()
-
-        def move_to_database_window(self, WishListID):
-
-                self.game_info_window.title("Move to Database")
-                self.game_info_window.protocol("WM_DELETE_WINDOW", self.block_close_button) 
-
-                #Grabs info from Wish List item.
-                wishlist_field = database().fetchone ("""SELECT WishListID, tbl_System.SystemName as 'System', Title
-                FROM tbl_WishList
-                LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_WishList.SystemID
-                WHERE WishListID = ?""", (WishListID,))  
-
-                #Inserts System Name and title from wishlist record
-                self.txt_system.set (wishlist_field[1])
-                self.txt_title.insert (0, wishlist_field[2])
-
-                #Sets focus to 'Year' text box
-                self.txt_year.focus()
-
-                btn_move_to_database = Button(
-                        self.framebuttons,
-                        text = "Move to Database",
-                        width = 15,
-                        height= 2,
-                        bg="Green",
-                        fg="white",
-                        command=lambda: self.save_game(None, True, False)
-                
-                ) 
-                btn_move_to_database.grid(row=0, column=0)
 
                 self.game_info_window.mainloop()
 
@@ -1188,7 +1168,7 @@ class wish_list_window:
                         command=lambda: self.move_to_database(self.wish_list.focus())
                 )
         
-                self.btn_move_to_database.grid(row=0, column=0, padx=5, pady=5)
+                # self.btn_move_to_database.grid(row=0, column=0, padx=5, pady=5)
 
                 self.btn_delete = Button(
                         self.framebottom,
@@ -1259,7 +1239,7 @@ class wish_list_window:
                         
         def add_wishlist_game (self):
                 if self.txt_system.get() == "" or self.txt_title.get() == "":
-                        messagebox.showwarning ("Wish List", "SYSTEM or TITLE is blank!")
+                        messagebox.showwarning ("Wish List", "You must fill out both System and Title!")
                         self.wish_list_window.focus_force()
                         return
 
@@ -1301,27 +1281,7 @@ class wish_list_window:
 
                 self.update_wish_list()
 
-        def move_to_database(self, WishListID):
-                if WishListID == "":
-                        messagebox.showwarning ("Move to Database", "No game selected!")
-                        self.wish_list_window.focus_force()
-                        return
-
-                response = messagebox.askyesno ("Move to Database", "You are sure you want to move this game to the main database? This action can't be undone!")
-                if response:
-                        
-                        #Sends wish list item to a new game info window
-                        game_info_window(self).move_to_database_window(WishListID)
-                
-                        #Deletes game from Wish List
-                        database().execute ("DELETE FROM tbl_Wishlist where WishListID = ?", (WishListID,))
-
-                        self.wishlist_changes = True
-                        self.update_wish_list()
-
-                else:
-                        self.wish_list_window.focus_force()
-
+        
         def export_wishlist_gsheets(self):
                 
                 #Creates a Pandas dataframe of Wishlist table
