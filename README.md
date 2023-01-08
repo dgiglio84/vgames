@@ -1,4 +1,6 @@
-<b>Please read the "Readme.txt" file for installation instructions.</b>
+Video Games Database
+
+<b>NOTE: Please read the "Install.txt" file for installation instructions.</b>
 
 *UPDATE LOG*
 
