@@ -1,9 +1,9 @@
 <b>Please read the "Readme.txt" file for installation instructions.</b>
 
-***UPDATE LOG***
+*UPDATE LOG*
 
 1-7-2023
-- Fixed the "Move to Database" button from Wish List.
+- Fixed the "Move to Database" button on Wish List.
 
 1-4-2023
 - Added a "View" selection on the main window to filter between Game Info and Stats.
