@@ -1306,7 +1306,7 @@ class wish_list_window:
                         wishlist_field = database().fetchone ("""SELECT tbl_System.SystemName as 'System', Title
                         FROM tbl_WishList
                         LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_WishList.SystemID
-                        WHERE WishListID = ?""", (self.wish_list.focus()))
+                        WHERE WishListID = ?""", (self.wish_list.focus(),))
                         
                         System = wishlist_field[0]
                         Title = wishlist_field[1]
