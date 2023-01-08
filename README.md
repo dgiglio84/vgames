@@ -8,5 +8,5 @@
 1-4-2023
 - Added a "View" selection on the main window to filter between Game Info and Stats.
 - Added a "Rating" field.
-- All fields can now be left blank if desired (excluding "System" and Title.")
+- All fields can now be left blank (excluding "System" and Title.")
 
