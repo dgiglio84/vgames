@@ -1,8 +1,6 @@
-Video Games Database
-
 <b>NOTE: Please read the "Install.txt" file for installation instructions.</b>
 
-*UPDATE LOG*
+*UPDATES*
 
 1-7-2023
 - Fixed the "Move to Database" button on Wish List.
