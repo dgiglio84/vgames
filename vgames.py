@@ -69,8 +69,7 @@ def create_database():
 	PRIMARY KEY("GameID"),
 	FOREIGN KEY("SystemID") REFERENCES "tbl_System"("SystemID"),
 	FOREIGN KEY("CompanyID") REFERENCES "tbl_Company"("CompanyID"),
-	FOREIGN KEY("GenreID") REFERENCES "tbl_Genre"("GenreID")
-);""")
+	FOREIGN KEY("GenreID") REFERENCES "tbl_Genre"("GenreID"));""")
 
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_Company" (
 	"CompanyID"	INTEGER NOT NULL,
@@ -94,7 +93,7 @@ def create_database():
 	"SystemName"	TEXT NOT NULL,
 	PRIMARY KEY("SystemID" AUTOINCREMENT))""")
 
-        #Adds newer columns to tbl_Games. If the column already exists, it is skipped.
+        #Adds newer columns to tbl_Games. If the column exists, it is skipped.
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Playtime NUMERIC NOT NULL DEFAULT ''")
         except:
@@ -516,6 +515,7 @@ class main_window:
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
 
+                
         def update_game_count(self, gamecount):
                 #Updates text in lblgamecount Label
                 self.lblgamecount.config (text="Count: " + str(gamecount), font=('Helvetica', 10, 'bold'))
@@ -562,7 +562,7 @@ class main_window:
         def duplicate_game(self, GameID):
                 
                 #Grabs current Treeview selection record data.
-                old_game = database().fetchone ("""SELECT tbl_Games.GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Progress, Playtime, Date_Completed, tbl_Games.Notes 
+                old_game = database().fetchone ("""SELECT tbl_Games.GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Progress, Playtime, Date_Completed, Rating, tbl_Games.Notes 
                         FROM tbl_Games
                         WHERE GameID = ?""", (GameID,))  
                
@@ -795,7 +795,7 @@ class game_info_window:
                 self.lbl_Format = Label (self.framegameinfo, text= "Format:", fg="white", bg="black")
                 self.lbl_Format.grid(row = 4, column=0, sticky=E, padx = 5)
                 self.format_list = ['Physical', 'Digital']
-                self.txt_Format = ttk.Combobox(self.framegameinfo, value = self.format_list, state="readonly", width = 30)
+                self.txt_Format = ttk.Combobox(self.framegameinfo, value = self.format_list, state="readonly", width = 8)
                 self.txt_Format.grid(row = 4, column= 1, sticky=W)
 
                 self.lbl_Progress = Label (self.framestats, text= "Progress:", fg="white", bg="black")
@@ -964,6 +964,32 @@ class game_info_window:
 
                 self.game_info_window.mainloop()
 
+        def move_to_database_window(self, System, Title):
+
+                self.game_info_window.title("Move to Database")
+                self.game_info_window.protocol("WM_DELETE_WINDOW", self.block_close_button) 
+
+                #Inserts System Name and title from wishlist record
+                self.txt_system.set (System)
+                self.txt_title.insert (0, Title)
+
+                #Sets focus to 'Year' text box
+                self.txt_year.focus()
+
+                btn_move_to_database = Button(
+                        self.framebuttons,
+                        text = "Move to Database",
+                        width = 15,
+                        height= 2,
+                        bg="Green",
+                        fg="white",
+                        command=lambda: self.save_game(None, True, False)
+                
+                ) 
+                btn_move_to_database.grid(row=0, column=0)
+
+                self.game_info_window.mainloop()
+
         def save_game(self, GameID, New, SaveAndNew):
                 
                 #Checks if System and Title are entered
@@ -1091,7 +1117,7 @@ class wish_list_window:
                 self.wish_list_window.iconbitmap("vgames.ico")
                 self.wish_list_window.configure(bg='#404040')
                 self.wish_list_window.title("Wish List")
-                self.wish_list_window.protocol("WM_DELETE_WINDOW", self.close_wishlist)
+                self.wish_list_window.protocol("WM_DELETE_WINDOW")
         
                 self.frametop=LabelFrame(self.wish_list_window, padx=5, pady=5, fg="yellow", bg="black")
                 self.frametop.pack (side= TOP, padx=5, pady=5)                
@@ -1153,9 +1179,7 @@ class wish_list_window:
                 #Adds label showing total number of games on Wish List
                 self.lblwishlistgamecount = Label (self.framewishlist)
                 self.lblwishlistgamecount.grid(row=1, column=0, columnspan=1)
-
-                #Tracks changes to Wish List
-                self.wishlist_changes = False                
+           
                 self.update_wish_list()
 
                 self.btn_move_to_database = Button(
@@ -1165,10 +1189,10 @@ class wish_list_window:
                         height= 2,
                         bg="green",
                         fg="white",
-                        command=lambda: self.move_to_database(self.wish_list.focus())
+                        command=lambda: self.move_to_database()
                 )
         
-                # self.btn_move_to_database.grid(row=0, column=0, padx=5, pady=5)
+                self.btn_move_to_database.grid(row=0, column=0, padx=5, pady=5)
 
                 self.btn_delete = Button(
                         self.framebottom,
@@ -1177,7 +1201,7 @@ class wish_list_window:
                         height= 2,
                         bg="red",
                         fg="white",
-                        command=lambda: self.delete_wishlist_game(self.wish_list.focus())
+                        command=lambda: self.delete_wishlist_game()
                 )
 
                 self.btn_delete.grid(row=0, column=1, padx=5, pady=5)
@@ -1201,7 +1225,7 @@ class wish_list_window:
                         height= 2,
                         bg="#33334d",
                         fg="white",
-                        command=self.close_wishlist
+                        command=self.wish_list_window.destroy
                 )
 
                 self.btn_close.grid(row=0, column=3, padx=5, pady=5)                
@@ -1265,22 +1289,50 @@ class wish_list_window:
                 self.txt_title.delete(0, END)
                 self.txt_system.focus()
 
-                self.wishlist_changes = True
-
                 self.update_wish_list()
+
+        def move_to_database(self):
+                
+                if self.wish_list.focus() == "":
+                        messagebox.showwarning ("Move to Database", "No game selected!")
+                        self.wish_list_window.focus_force()
+                        return
+
+                response = messagebox.askyesno ("Move to Database", "You are sure you want to move this game to the main database?")
+
+                if response:
+
+                        #Creates System and Title fields to send to game_info_window class
+                        wishlist_field = database().fetchone ("""SELECT tbl_System.SystemName as 'System', Title
+                        FROM tbl_WishList
+                        LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_WishList.SystemID
+                        WHERE WishListID = ?""", (self.wish_list.focus()))
+                        
+                        System = wishlist_field[0]
+                        Title = wishlist_field[1]
+
+                        #Deletes game from Wish List
+                        database().execute ("DELETE FROM tbl_Wishlist where WishListID = ?", (self.wish_list.focus(),))
+
+                        #Updates wish list count and closes Wishlist window.
+                        self.update_wish_list()
+                        self.wish_list_window.destroy()                      
+                        
+                        #Sends wish list item to a new game info window
+                        game_info_window(self.main_window).move_to_database_window(System, Title)
+                                                                   
+                else:
+                        self.wish_list_window.focus_force()
         
-        def delete_wishlist_game(self, WishListID):
-                if WishListID == "":
+        def delete_wishlist_game(self):
+                if self.wish_list.focus() == "":
                         messagebox.showwarning ("Delete", "No game selected!")
                         self.wish_list_window.focus_force()
                         return
                 
-                database().execute ("DELETE FROM tbl_Wishlist where WishListID = ?", (WishListID,))
-
-                self.wishlist_changes = True
+                database().execute ("DELETE FROM tbl_Wishlist where WishListID = ?", (self.wish_list.focus(),))
 
                 self.update_wish_list()
-
         
         def export_wishlist_gsheets(self):
                 
@@ -1298,16 +1350,7 @@ class wish_list_window:
         
                 if opengsheetprompt == True:
                         webbrowser.open("https://docs.google.com/spreadsheets/u/0/")
-                
-        def close_wishlist(self):
-                #Adds warning if changes are made
-                if self.wishlist_changes:
-                        response = messagebox.askyesno ("Close", "Changes have been made to the wish list! Would you like to update Google Sheets?")
-                        if response:
-                               self.export_wishlist_gsheets
-
-                self.wish_list_window.destroy()
-        
+                        
 class random_game_window:
 
         def __init__(self, main_window):
