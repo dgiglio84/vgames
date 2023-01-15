@@ -4,7 +4,6 @@ import random
 import sqlite3
 import tkinter as tk
 import webbrowser
-# from ctypes import alignment
 from tkinter import *
 from tkinter import messagebox, ttk
 from tkinter.filedialog import asksaveasfilename
@@ -728,7 +727,7 @@ class game_info_window:
                 self.framegameinfo=LabelFrame(self.framemiddle, text="Game Info", font='bold', padx=20, pady=5, fg="yellow", bg="black")
                 self.framegameinfo.pack (side= LEFT, padx=5, pady=5)
 
-                self.framestats=LabelFrame(self.framemiddle, text="Stats", font='bold', padx=5, pady=14, fg="yellow", bg="black")
+                self.framestats=LabelFrame(self.framemiddle, text="Stats", font='bold', padx=20, pady=5, fg="yellow", bg="black")
                 self.framestats.pack (side= LEFT, padx=5, pady=5)
         
                 self.framebottom=LabelFrame(self.game_info_window, padx=5, pady=5, fg="white", bg="black")
@@ -978,7 +977,7 @@ class game_info_window:
 
                 btn_move_to_database = Button(
                         self.framebuttons,
-                        text = "Move to Database",
+                        text = "Save",
                         width = 15,
                         height= 2,
                         bg="Green",
