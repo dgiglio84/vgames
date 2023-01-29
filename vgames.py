@@ -4,6 +4,7 @@ import random
 import sqlite3
 import tkinter as tk
 import webbrowser
+import configparser
 from tkinter import *
 from tkinter import messagebox, ttk
 from tkinter.filedialog import asksaveasfilename
@@ -159,7 +160,7 @@ class main_window:
                 #Creates STATS pop-up menu
                 self.popup_stats = Menu(master, tearoff = 0)
                 self.popup_stats.add_command(label="Total Games Per System", command=lambda: stats(self.system_menu_option.get()).System())
-                self.popup_stats.add_command(label="Physical vs. Digital", command=lambda: stats(self.system_menu_option.get()).Format())
+                self.popup_stats.add_command(label="Games By Format", command=lambda: stats(self.system_menu_option.get()).Format())
                 self.popup_stats.add_separator()
                 self.popup_stats.add_command(label="Games By Genre",command=lambda:stats(self.system_menu_option.get()).Genre())
                 self.popup_stats.add_command(label="Games By Decade",command=lambda:stats(self.system_menu_option.get()).Decade())
@@ -232,6 +233,10 @@ class main_window:
                 self.FrameView=LabelFrame(self.FrameTop, text="View", padx=5, pady=5, fg="yellow", bg="black")
                 self.FrameView.pack (side=LEFT, padx=5, pady=5)
 
+                #Creates Clear Filter box frame
+                self.FrameReset=LabelFrame(self.FrameTop, text="Filter", padx=5, pady=5, fg="yellow", bg="black")
+                self.FrameReset.pack (side=LEFT, padx=5, pady=5)
+
                 #Games list frame
                 self.FrameGames=LabelFrame(master, padx=5, pady=5)
                 self.FrameGames.pack (side=TOP, padx=5, pady=5)
@@ -253,24 +258,6 @@ class main_window:
                 self.system_menu_option.set("All")
                 self.system_menu_option.grid(row=0,column=0) 
 
-                #Search bar
-                self.txt_search_bar = Entry(self.FrameSearch, width = 50)
-                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
-                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
-                self.txt_search_bar.grid(row=0, column=1)
-
-                #Clear button
-                self.btn_clear = Button(
-                        self.FrameSearch,
-                        text = "Clear",
-                        width = 10,
-                        height= 1,
-                        bg="red",
-                        fg="white",
-                        command=self.clear_search
-                )
-                self.btn_clear.grid(row=0, column=2, padx=10)
-
                 #Progress Selection Menu
                 values = ['All', 'Complete', 'Incomplete', 'Currently Playing', 'Backlog', 'N/A']
                 self.ProgressSelection = StringVar()
@@ -279,24 +266,53 @@ class main_window:
                 self.ProgressSelection.set("All")
                 self.ProgressSelection.grid(row=0,column=0) 
 
-                #Format Radio Buttons
+                #Format Selection Menu
+                values = ['All', 'Physical', 'Digital', 'Other']
                 self.FormatSelection = StringVar()
-                values = ['All', 'Physical', 'Digital']
-                col = 0
-                for value in values:
-                        self.rbt_Progress = Radiobutton (self.FrameFormat, text = value, value = value, variable = self.FormatSelection, bg='black', fg= 'white', selectcolor="red", command = self.update_game_list)
-                        self.rbt_Progress.grid(row = 0, column = col)
-                        col +=1
-                self.FormatSelection.set('All')
+                self.FormatSelection = ttk.Combobox(self.FrameFormat, values = values, state="readonly")
+                self.FormatSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
+                self.FormatSelection.set("All")
+                self.FormatSelection.grid(row=0, column=0)
 
-                #View Menu
+                #Search bar
+                self.txt_search_bar = Entry(self.FrameSearch, width = 40)
+                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
+                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
+                self.txt_search_bar.grid(row=0, column=1)
+
+                #Clear button
+                self.btn_clearsearch = Button(
+                        self.FrameSearch,
+                        text = "Clear",
+                        width = 4,
+                        height= 1,
+                        bg="grey",
+                        fg="white",
+                        command=self.clear_search
+                )
+                self.btn_clearsearch.grid(row=0, column=2, padx=10)
+
+                #View Radio Button
                 values = ['Game Info', 'Stats']
                 self.ViewSelection = StringVar()
-                self.ViewSelection = ttk.Combobox(self.FrameView, values = values, state="readonly")
-                self.ViewSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
-                self.ViewSelection.set("Game Info")
-                self.ViewSelection.grid(row=0,column=0) 
+                col = 0
+                for value in values:
+                        self.rbt_View = Radiobutton (self.FrameView, text = value, value = value, variable = self.ViewSelection, bg='black', fg= 'white', selectcolor="red", command = self.update_game_list)
+                        self.rbt_View.grid(row = 0, column = col)
+                        col +=1
+                self.ViewSelection.set('Game Info')
 
+                #Clear Filter button
+                self.btn_resetfilter = Button(
+                        self.FrameReset,
+                        text = "Reset Filter",
+                        width = 8,
+                        height= 1,
+                        bg="red",
+                        fg="white",
+                        command=self.reset_filter
+                )
+                self.btn_resetfilter.grid(row=0, column=2, padx=10)
 
                 #------------------------GAMES LIST--------------------------------
 
@@ -345,6 +361,26 @@ class main_window:
                 #Creates label for game count
                 self.lblgamecount = Label (self.FrameGames)
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
+
+                #Imports filters from "vgames.ini" file
+                try:   
+                        config = configparser.ConfigParser()
+                        config.read('vgames.ini')
+
+                        SystemName = config.get('FILTERS', 'SystemName')
+                        Progress = config.get('FILTERS', 'Progress')
+                        Format = config.get('FILTERS', 'Format')
+                        View = config.get('FILTERS', 'View')
+                        SearchString = config.get ('FILTERS', 'SearchString')
+
+                        self.system_menu_option.set(SystemName)
+                        self.ProgressSelection.set(Progress)
+                        self.FormatSelection.set(Format)
+                        self.ViewSelection.set(View)
+                        self.txt_search_bar.insert(0, SearchString)
+
+                except:
+                        pass
 
                 #Initial update of the Treeview Games list
                 self.update_game_list()
@@ -469,26 +505,38 @@ class main_window:
 
                 #Creates local variables based on main window selections
                 SystemName = self.system_menu_option.get()
-                SearchString = self.txt_search_bar.get()
                 Progress = self.ProgressSelection.get()
                 Format = self.FormatSelection.get()
                 View = self.ViewSelection.get()
+                SearchString = self.txt_search_bar.get()
+
+                #Disables the "Reset Filter" button if any filter is not set to "All"
+                if SystemName != "All" or Format != "All" or Progress != "All" or SearchString != "":
+                        self.btn_resetfilter.config(state=NORMAL)
+                else:
+                        self.btn_resetfilter.config(state=DISABLED)
+
+                #Disabled "Clear" search button if search box is blank
+                if SearchString == "":
+                        self.btn_clearsearch.config(state=DISABLED)
+                else:
+                        self.btn_clearsearch.config(state=NORMAL)
 
                 #Sets SystemName variable to wildcard when "All" is selected
                 if SystemName == "All":
                         SystemName = "%"
 
-                #Sets SearchString variable to wildcard when Search box is empty
-                if SearchString == "":
-                        SearchString = "%"
-
                 #Sets "Progress" variable to wildcard if "All" is selected
+                if Format == "All":
+                        Format = "%"
+                
+                #Sets "Format" variable to wildcard if "All" is selected
                 if Progress == "All":
                         Progress = "%"
                 
-                #Sets "Format" variable to wildcard if "All" is selected
-                if Format == "All":
-                        Format = "%"
+                #Sets SearchString variable to wildcard when Search box is empty
+                if SearchString == "":
+                        SearchString = "%"
 
                 Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating
                         FROM tbl_Games
@@ -516,8 +564,10 @@ class main_window:
 
                 
         def update_game_count(self, gamecount):
+                TotalGames = database().fetchone("SELECT COUNT(GameID) from tbl_Games")
+
                 #Updates text in lblgamecount Label
-                self.lblgamecount.config (text="Count: " + str(gamecount), font=('Helvetica', 10, 'bold'))
+                self.lblgamecount.config (text="Count: " + str(gamecount) + "/" + str(TotalGames[0]), font=('Helvetica', 10, 'bold'))
                        
         def sort_column(self, tview, column, reverse):
                
@@ -647,15 +697,16 @@ class main_window:
 
                 webbrowser.open(URL)
 
-
         def clear_search(self):
-                self.system_menu_option.set("All")
                 self.txt_search_bar.delete(0, END)
-                self.ProgressSelection.set("All")
-                self.FormatSelection.set("All")
                 self.update_game_list()
 
-       
+        def reset_filter (self):
+                self.ProgressSelection.set("All")
+                self.FormatSelection.set("All")
+                self.system_menu_option.set("All")
+                self.txt_search_bar.delete(0, END)
+                self.update_game_list()
 
         def close_app(self):
                         
@@ -664,6 +715,19 @@ class main_window:
                         response = messagebox.askyesno ("Close", "Changes have been made to the database! Would you like to update Google Sheets?")
                         if response:
                                 export().gsheets()
+
+                #Saves current view to 'vgames.ini' file
+                config = configparser.ConfigParser()
+                config['FILTERS'] = {
+                        'SystemName': self.system_menu_option.get(), 
+                        'Progress': self.ProgressSelection.get(),
+                        'Format': self.FormatSelection.get(),
+                        'View': self.ViewSelection.get(),
+                        'SearchString': self.txt_search_bar.get()
+                                }
+
+                with open("vgames.ini","w") as file_object:
+                        config.write(file_object)
 
                 self.master.destroy()
 
@@ -708,7 +772,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("775x400")
+                self.game_info_window.geometry("800x415")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
         
@@ -743,12 +807,12 @@ class game_info_window:
                 self.systems_list = []
                 for row in self.system:
                         self.systems_list.append(row[0])
-                self.txt_system = AutocompleteCombobox(self.framesystem, width = 20, font='bold', value=self.systems_list, completevalues=self.systems_list)
+                self.txt_system = AutocompleteCombobox(self.framesystem, width = 20, value=self.systems_list, completevalues=self.systems_list)
                 # self.txt_system = ttk.Combobox(self.framesystem, value=self.systems_list, width = 20)
                 self.txt_system.grid(row=0, column=1)
                 self.txt_system.focus()
 
-                self.txt_title = Entry (self.frametitle, fg = "black", font='bold', bg = "white", width=45)
+                self.txt_title = Entry (self.frametitle, fg = "black", bg = "white", width=50)
                 self.txt_title.grid(row = 0, column= 0)
     
                 self.btn_quick_search = Button(
@@ -793,7 +857,7 @@ class game_info_window:
 
                 self.lbl_Format = Label (self.framegameinfo, text= "Format:", fg="white", bg="black")
                 self.lbl_Format.grid(row = 4, column=0, sticky=E, padx = 5)
-                self.format_list = ['Physical', 'Digital']
+                self.format_list = ['Physical', 'Digital', 'Other']
                 self.txt_Format = ttk.Combobox(self.framegameinfo, value = self.format_list, state="readonly", width = 8)
                 self.txt_Format.grid(row = 4, column= 1, sticky=W)
 
@@ -1494,9 +1558,9 @@ class stats:
 
         def Format(self):
                 if self.SystemName == "%":
-                        Title = "Physical vs. Digital - All Systems"
+                        Title = "Games By Format - All Systems"
                 else:
-                        Title = "Physical vs. Digital - " + self.SystemName
+                        Title = "Games By Format - " + self.SystemName
                 plt.figure(Title)
                 plt.get_current_fig_manager().window.state('zoomed')
                 self.df.Format.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
