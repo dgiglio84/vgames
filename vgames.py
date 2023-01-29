@@ -362,8 +362,8 @@ class main_window:
                 self.lblgamecount = Label (self.FrameGames)
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
-                #Imports filters from "vgames.ini" file
-                try:   
+                #Imports filters and window size from "vgames.ini" file
+                if os.path.exists('vgames.ini'):  
                         config = configparser.ConfigParser()
                         config.read('vgames.ini')
 
@@ -372,15 +372,14 @@ class main_window:
                         Format = config.get('FILTERS', 'Format')
                         View = config.get('FILTERS', 'View')
                         SearchString = config.get ('FILTERS', 'SearchString')
+                        State = config.get ('WINDOW', 'State')
 
                         self.system_menu_option.set(SystemName)
                         self.ProgressSelection.set(Progress)
                         self.FormatSelection.set(Format)
                         self.ViewSelection.set(View)
                         self.txt_search_bar.insert(0, SearchString)
-
-                except:
-                        pass
+                        self.master.state(State)
 
                 #Initial update of the Treeview Games list
                 self.update_game_list()
@@ -716,7 +715,7 @@ class main_window:
                         if response:
                                 export().gsheets()
 
-                #Saves current view to 'vgames.ini' file
+                #Saves current filters and window state to 'vgames.ini' file
                 config = configparser.ConfigParser()
                 config['FILTERS'] = {
                         'SystemName': self.system_menu_option.get(), 
@@ -726,8 +725,11 @@ class main_window:
                         'SearchString': self.txt_search_bar.get()
                                 }
 
-                with open("vgames.ini","w") as file_object:
-                        config.write(file_object)
+                config['WINDOW'] = {
+                        'State': self.master.state()}                
+      
+                with open("vgames.ini","w") as f:
+                        config.write(f)
 
                 self.master.destroy()
 
@@ -772,7 +774,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("800x415")
+                self.game_info_window.geometry("725x415")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
         
