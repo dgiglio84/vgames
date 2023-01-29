@@ -3,7 +3,7 @@
 *UPDATES*
 
 1-28-2023
-- Filters and views will now save between sessions.
+- Filters and window state will now save on exit.
 - Game count now shows total games.
 - Added a "Reset Filter" button.
 
