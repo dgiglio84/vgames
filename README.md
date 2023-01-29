@@ -2,6 +2,11 @@
 
 *UPDATES*
 
+1-28-2023
+- Filters and views will now save between sessions.
+- Game count now shows total games.
+- Added a "Reset Filter" button.
+
 1-7-2023
 - Fixed the "Move to Database" button on Wish List.
 
@@ -9,4 +14,3 @@
 - Added a "View" selection on the main window to filter between Game Info and Stats.
 - Added a "Rating" field.
 - All fields can now be left blank (excluding "System" and Title.")
-
