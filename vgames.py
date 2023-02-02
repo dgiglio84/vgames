@@ -354,8 +354,10 @@ class main_window:
              
                 self.games_list.grid(row=0, column=0)
 
-                #Games list bindings
+                #Games list key bindings
                 self.games_list.bind("<Double-Button-1>", lambda event: game_info_window(self).view_game_window(self.games_list.focus()))
+                self.games_list.bind("<Return>", lambda event: game_info_window(self).view_game_window(self.games_list.focus()))
+                self.games_list.bind("<Delete>", lambda event: self.delete_game(self.games_list.focus()))
                 self.games_list.bind("<Button-3>", lambda event: main_window_popup_menu (self, event).Right_Click())
 
                 #Creates label for game count
@@ -599,8 +601,7 @@ class main_window:
                 
                 if del_prompt == 1:
                         database().execute ("DELETE FROM tbl_Games where GameID = ?", (GameID,))
-                        messagebox.showinfo('Delete', 'Game Deleted!')
-
+                        
                         #Updates variable to indicate changes have been made
                         self.changes = True
 
@@ -777,6 +778,7 @@ class game_info_window:
                 self.game_info_window.geometry("725x415")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
+                self.game_info_window.bind('<Escape>', lambda event: self.game_info_window.destroy())
         
                 self.frametop=LabelFrame(self.game_info_window, padx=5, pady=5, fg="yellow", bg="black")
                 self.frametop.pack (side= TOP, padx=5, pady=5)
