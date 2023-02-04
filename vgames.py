@@ -138,7 +138,7 @@ class main_window:
 
                 self.master = master
 
-                master.geometry("1250x650")
+                master.geometry("1250x700")
                 master.title("Video Games Database")
                 master.iconbitmap("vgames.ico")
                 master.configure(bg='gray')
@@ -242,8 +242,16 @@ class main_window:
                 self.FrameGames.pack (side=TOP, padx=5, pady=5)
 
                 #Buttons frame
-                self.FrameButtons=LabelFrame(master, padx=5, pady=5, bg="black")
+                self.FrameButtons=LabelFrame(master, padx=5, pady=5, bg="#404040")
                 self.FrameButtons.pack (side=BOTTOM, padx=5, pady=10)
+                self.FrameButtons1=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
+                self.FrameButtons1.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons2=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
+                self.FrameButtons2.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons3=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
+                self.FrameButtons3.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons4=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
+                self.FrameButtons4.pack (side=RIGHT, padx=5, pady=10)
 
                 #------------------------TOP TOOLBAR--------------------------------
 
@@ -394,7 +402,7 @@ class main_window:
                 #------------------------BUTTONS--------------------------------
 
                 self.btn_new = Button(
-                        self.FrameButtons,
+                        self.FrameButtons1,
                         text = "New",
                         width = 15,
                         height= 2,
@@ -406,7 +414,7 @@ class main_window:
                 self.btn_new.grid(row=0, column=0, padx=5, pady=5)
 
                 self.btn_view = Button(
-                        self.FrameButtons,
+                        self.FrameButtons1,
                         text = "View/Edit",
                         width = 15,
                         height= 2,
@@ -418,7 +426,7 @@ class main_window:
                 self.btn_view.grid(row=0, column=1, padx=5, pady=5)
 
                 self.btn_delete = Button(
-                        self.FrameButtons,
+                        self.FrameButtons1,
                         text = "Delete",
                         width = 15,
                         height= 2,
@@ -430,7 +438,7 @@ class main_window:
                 self.btn_delete.grid(row=0, column=2, padx=5, pady=5)
 
                 self.btn_random = Button(
-                        self.FrameButtons,
+                        self.FrameButtons2,
                         text = "Random Game",
                         width = 15,
                         height= 2,
@@ -439,21 +447,11 @@ class main_window:
                         command=lambda: random_game_window(self)
                 )
 
-                self.btn_random.grid(row=0, column=4, padx=5, pady=5)
+                self.btn_random.grid(row=0, column=0, padx=5, pady=5)
 
-                #Wish List button
-                self.btn_wishlist = Button(
-                        self.FrameButtons,
-                        width = 15,
-                        height= 2,
-                        bg="yellow",
-                        fg="black",
-                        command=lambda: wish_list_window(self)
-                )
-                self.btn_wishlist.grid(row=0, column=5, padx=5, pady=5)
 
                 self.btn_export = Button(
-                        self.FrameButtons,
+                        self.FrameButtons2,
                         text = "Export",
                         width = 15,
                         height= 2,
@@ -462,10 +460,10 @@ class main_window:
                         command=lambda: main_window_popup_menu (self, 0).Export()
                 )
 
-                self.btn_export.grid(row=0, column=6, padx=5, pady=5)
+                self.btn_export.grid(row=0, column=1, padx=5, pady=5)
 
                 self.btn_stats = Button(
-                        self.FrameButtons,
+                        self.FrameButtons2,
                         text = "Stats",
                         width = 15,
                         height= 2,
@@ -474,20 +472,32 @@ class main_window:
                         command=lambda: main_window_popup_menu (self, 0).Stats()
                 )
 
-                self.btn_stats.grid(row=0, column=7, padx=5, pady=5)
+                self.btn_stats.grid(row=0, column=2, padx=5, pady=5)
 
-                self.btn_exit = Button(
-                        self.FrameButtons,
-                        text = "Exit",
+
+                self.btn_hangman = Button(
+                        self.FrameButtons3,
+                        text = "Hangman",
                         width = 15,
                         height= 2,
-                        bg="#33334d",
+                        bg="#0000e6",
                         fg="white",
-                        command=self.close_app
+                        command=lambda: hangman()
                 )
 
-                self.btn_exit.grid(row=0, column=8, padx=5, pady=5)
-        
+                self.btn_hangman.grid(row=0, column=0, padx=5, pady=5)
+
+                #Wish List button
+                self.btn_wishlist = Button(
+                        self.FrameButtons4,
+                        width = 15,
+                        height= 2,
+                        bg="yellow",
+                        fg="black",
+                        command=lambda: wish_list_window(self)
+                )
+                self.btn_wishlist.grid(row=0, column=0, padx=5, pady=5)
+       
                 #Creates variable to detect if changes have been made to the database
                 self.changes = False
 
@@ -1425,14 +1435,14 @@ class random_game_window:
                 self.main_window = main_window
 
                 self.random_game_window=Toplevel()
-                self.random_game_window.geometry("450x135")
+                self.random_game_window.geometry("450x150")
                 self.random_game_window.title("Random Game")
                 self.random_game_window.iconbitmap("vgames.ico")
                 self.random_game_window.configure(bg='#404040')
 
                 self.frametop=LabelFrame(self.random_game_window, padx=5, pady=5, bg = 'black')
                 self.frametop.pack (side= TOP, padx=5, pady=5)
-                self.framebottom=LabelFrame(self.random_game_window, bg = 'black')
+                self.framebottom=LabelFrame(self.random_game_window, bg = 'black', padx = 5, pady =5)
                 self.framebottom.pack (side=BOTTOM, padx=5, pady =5)
 
                 self.lbl_title = Label (self.frametop, bg='black', fg='white', font=('Helvetica', 12, 'bold'))
@@ -1450,7 +1460,7 @@ class random_game_window:
                 command=self.randomize
 
                 ) 
-                self.btn_reroll.grid(row=0, column=0)
+                self.btn_reroll.grid(row=0, column=0, padx=5, pady=5)
 
                 self.btn_close = Button(
                 self.framebottom,
@@ -1462,7 +1472,7 @@ class random_game_window:
                 command=self.random_game_window.destroy
 
                 ) 
-                self.btn_close.grid(row=0, column=1)
+                self.btn_close.grid(row=0, column=1, padx=5, pady=5)
 
                 self.randomize()
 
@@ -1491,6 +1501,339 @@ class random_game_window:
                 #Displays randomly generated game in a labels
                 self.lbl_title.config (text= Rand_Game[0])
                 self.lbl_system.config (text= Rand_Game[1])
+
+class hangman:
+        
+        def __init__(self):
+                
+                #Draws Hangman Window
+                self.hangman_window=Toplevel()
+                self.hangman_window.geometry("750x500")
+                self.hangman_window.iconbitmap("vgames.ico")
+                self.hangman_window.title("Hangman")
+                self.hangman_window.configure(bg='#404040')
+                self.hangman_window.bind('<Escape>', lambda event: self.hangman_window.destroy())
+
+                #Frames
+                self.frametop=LabelFrame(self.hangman_window, padx=100, pady=10, bg = 'black')
+                self.frametop.pack (side= TOP, padx=5, pady=5)
+                self.framemiddle=LabelFrame(self.hangman_window, padx=5, pady=5, fg="yellow", bg = 'black')
+                self.framemiddle.pack (side=TOP, padx=5, pady=5)
+
+                self.framehangman=LabelFrame(self.frametop, padx=5, pady=5, bg = 'black')
+                self.framehangman.pack (side=TOP, padx=5, pady=5)
+
+                self.frameword=LabelFrame(self.frametop, padx=5, pady=5, borderwidth=0, highlightthickness=0, bg = 'black')
+                self.frameword.pack (side=TOP, padx=5, pady=5)
+
+                self.framehint=LabelFrame(self.frametop, text = "Hint", padx=5, pady=5, fg="yellow", bg = 'black')
+                self.framehint.pack(side=BOTTOM)
+
+                self.frameguess=LabelFrame(self.framemiddle, text = "Guess", padx=5, pady=5, fg="yellow", bg = 'black')
+                self.frameguess.pack (side = LEFT, padx=5, pady=5)
+                self.framealreadyguessed=LabelFrame(self.framemiddle, text = "Already Guessed", padx=20, pady=5, fg="yellow", bg = 'black')
+                self.framealreadyguessed.pack (side = LEFT, padx=5, pady=5)
+
+                self.framebuttons=LabelFrame(self.hangman_window, padx=5, pady=5, fg="yellow", bg="black")
+                self.framebuttons.pack (side=BOTTOM, padx=5, pady=5)
+
+                #Hangman
+                self.lbl_hangman = Label (self.framehangman, font = "bold", fg="white", bg="black", padx=10, justify="left")
+                self.lbl_hangman.grid(row=0, column=0)
+
+                #Word
+                self.lbl_word = Label (self.frameword, font = "bold", fg="white", bg="black")
+                self.lbl_word.grid (row=0, column=0)
+
+                #Hint
+                self.lbl_hint = Label (self.framehint, fg="white", bg="black")
+                self.lbl_hint.grid(row=1, column=1)
+
+                #Guess box
+                self.txt_guess = Entry(self.frameguess, width = 4)
+                self.txt_guess.grid(row=0, column=0, padx=5, pady=5)
+                self.txt_guess.bind("<Return>", lambda event: self.guess())
+                
+                #Guess button
+                self.btn_guess = Button(
+                        self.frameguess,
+                        text = "Guess",
+                        width = 5,
+                        height= 1,
+                        bg="blue",
+                        fg="white",
+                        command=self.guess
+                )
+                self.btn_guess.grid(row=0, column=1, padx=10)
+
+                #Guessed label and text box
+                self.lbl_alreadyguessed = Label(self.framealreadyguessed, fg="white", bg="black")
+                self.lbl_alreadyguessed.grid (row=1, column=1, padx=5, pady=5)
+
+                #Bottom buttons
+                self.btn_newgame = Button(
+                self.framebuttons,
+                text = "New Game",
+                width = 15,
+                height= 2,
+                bg="green",
+                fg="white",
+                command=self.new_game
+
+                ) 
+                self.btn_newgame.grid(row=0, column=0, padx=5, pady=5)
+
+                self.btn_close = Button(
+                self.framebuttons,
+                text = "Close",
+                width = 15,
+                height= 2,
+                bg="red",
+                fg="white",
+                command=self.hangman_window.destroy
+
+                ) 
+                self.btn_close.grid(row=0, column=1, padx=5, pady=5)
+
+                self.new_game()
+               
+                self.hangman_window.mainloop()
+
+        def new_game(self):
+               
+                self.txt_guess.focus()
+
+                self.btn_guess.config (state=NORMAL)
+                self.txt_guess.config (state=NORMAL)
+                self.txt_guess.delete (0, END)
+
+                self.tries = 7
+
+                #Fetches random game from database
+                randomgame = database().fetchone("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre'
+                        FROM tbl_Games
+                        LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
+                        LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
+			LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID
+                        ORDER BY random()
+                        LIMIT 1
+                        """)
+                
+                if randomgame is None:
+                        messagebox.showwarning ("Hangman", "No games in database!")
+                        self.hangman_window.destroy()
+
+                #Word Creation
+                title = randomgame[1]
+                wordcreate = ""
+                #Removes special characters from title
+                for i, letter in enumerate(title):                       
+                        if letter == "'" or letter == ":" or letter == "!" or letter == "-" or letter == ".":
+                                wordcreate += ""
+                        else:
+                                wordcreate += letter
+                self.word = wordcreate.upper()
+                
+                #Sets hint (either System, Year, Company, or Genre)
+                self.hint = random.choice ([randomgame[0], randomgame[2], randomgame[3], randomgame[4]])
+                self.lbl_hint.config (text = self.hint)
+
+                #Sets Already Guessed variable
+                self.alreadyguessed = ""
+
+                self.update_hangman()
+                self.update_word_display()
+
+        def update_word_display(self):
+
+                self.word_display = ""
+
+                #Shows letter if not in "Already Guessed" box
+                for i, letter in enumerate(self.word):
+                        if letter == " ":
+                                self.word_display += "  "
+                        elif letter in self.alreadyguessed:
+                                self.word_display += " " + letter + " "                     
+                        elif letter not in self.alreadyguessed:
+                                self.word_display += " _ "
+
+                #Updates word label
+                self.lbl_word.config (text = self.word_display)
+
+        def update_hangman(self):
+
+                if self.tries == 7:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|\n"
+                "|\n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+
+                elif self.tries == 6:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|\n"
+                "|\n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+
+                elif self.tries == 5:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|\n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+        
+                elif self.tries == 4:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|                |\n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+
+                elif self.tries == 3:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|               /|\n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+                
+                
+                elif self.tries == 2:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|               /|\ \n"
+                "|\n"
+                "|\n"
+                "|_________"
+
+                        )
+
+                elif self.tries == 1:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|               /|\ \n"
+                "|               / \n"
+                "|\n"
+                "|_________"
+
+                        )
+
+                elif self.tries == 0:
+
+                        self.lbl_hangman.config (text =
+                "________\n"
+                "|                |\n"
+                "|                |\n"
+                "|                O\n"
+                "|               /|\ \n"
+                "|               / \ \n"
+                "|\n"
+                "|_________"
+
+                        )
+
+        def guess(self):
+
+                #Converts guessed letter to uppercase
+                guess = self.txt_guess.get().upper()
+
+                #Guess validation
+                if len(guess) > 1:
+                        messagebox.showwarning ("Hangman", "Only enter 1 letter or number!")
+                        self.txt_guess.delete (0, END)
+                        self.txt_guess.focus()
+                        self.hangman_window.focus()
+                        return
+
+                if guess == "":
+                        messagebox.showwarning ("Hangman", "No letters or numbers entered!")
+                        self.txt_guess.focus()
+                        self.hangman_window.focus()
+                        return
+                
+                if guess in self.alreadyguessed:
+                        messagebox.showwarning ("Hangman", guess + " has already been guessed!")
+                        self.txt_guess.delete (0, END)
+                        self.txt_guess.focus()
+                        self.hangman_window.focus()
+                        return
+
+                #Updates "Already Guessed" variable and label
+                self.alreadyguessed += guess
+                self.lbl_alreadyguessed.config (text = self.alreadyguessed)
+
+                #Checks if guess is good or bad
+                if guess not in self.word:
+                        self.tries -= 1
+                        if self.tries == 0:
+                                messagebox.showwarning ("Hangman", "Out of tries! Game over!")
+                                self.end_game()
+                        else:
+                                messagebox.showwarning ("Hangman", "Wrong Guess! " + str(self.tries) + " tries remaining!" )
+
+                        self.hangman_window.focus()
+                        self.update_hangman()
+
+                elif guess in self.word:
+                        self.update_word_display()
+                        #Checks for win - no blank ( _ ) spaces
+                        if "_" not in self.word_display:
+                                messagebox.showwarning ("Hangman", "You Won!")
+                                self.end_game()
+                
+
+                #Clears "Guess" text box and sets focus
+                self.txt_guess.delete(0, END)
+                self.txt_guess.focus()
+        
+        def end_game(self):
+                self.hangman_window.focus()
+                self.btn_guess.config (state=DISABLED)
+                self.txt_guess.config (state=DISABLED)
+
 
 class export:
 
@@ -1677,10 +2020,8 @@ class stats:
                         plt.text(v + 1, i - .25, str(v))          
                 
                 plt.show()  
-
                 
 root = Tk()
 app = main_window(root)
 
 root.mainloop()
-
