@@ -242,8 +242,8 @@ class main_window:
                 self.FrameGames.pack (side=TOP, padx=5, pady=5)
 
                 #Buttons frame
-                self.FrameButtons=LabelFrame(master, padx=5, pady=5, bg="#404040")
-                self.FrameButtons.pack (side=BOTTOM, padx=5, pady=10)
+                self.FrameButtons=LabelFrame(master, padx=5, bg="#404040")
+                self.FrameButtons.pack (side=BOTTOM, padx=5, pady=5)
                 self.FrameButtons1=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
                 self.FrameButtons1.pack (side=LEFT, padx=5, pady=10)
                 self.FrameButtons2=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
@@ -329,7 +329,7 @@ class main_window:
                 style.theme_use("clam")
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
-                self.games_list = ttk.Treeview(self.FrameGames, height = 20)
+                self.games_list = ttk.Treeview(self.FrameGames, height = 19)
                 self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress', 'Playtime', 'Date Completed', 'Rating')
 
                 self.games_list.column("#0", width=0, stretch=NO)
@@ -1640,6 +1640,7 @@ class hangman:
 
                 #Sets Already Guessed variable
                 self.alreadyguessed = ""
+                self.lbl_alreadyguessed.config (text = self.alreadyguessed)
 
                 self.update_hangman()
                 self.update_word_display()
