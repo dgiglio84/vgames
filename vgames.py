@@ -245,13 +245,13 @@ class main_window:
                 self.FrameButtons=LabelFrame(master, padx=5, bg="#404040")
                 self.FrameButtons.pack (side=BOTTOM, padx=5, pady=5)
                 self.FrameButtons1=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
-                self.FrameButtons1.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons1.pack (side=LEFT, padx=5, pady=5)
                 self.FrameButtons2=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
-                self.FrameButtons2.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons2.pack (side=LEFT, padx=5, pady=5)
                 self.FrameButtons3=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
-                self.FrameButtons3.pack (side=LEFT, padx=5, pady=10)
+                self.FrameButtons3.pack (side=LEFT, padx=5, pady=5)
                 self.FrameButtons4=LabelFrame(self.FrameButtons, padx=5, pady=5, bg="black")
-                self.FrameButtons4.pack (side=RIGHT, padx=5, pady=10)
+                self.FrameButtons4.pack (side=RIGHT, padx=5, pady=5)
 
                 #------------------------TOP TOOLBAR--------------------------------
 
@@ -329,7 +329,7 @@ class main_window:
                 style.theme_use("clam")
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
-                self.games_list = ttk.Treeview(self.FrameGames, height = 19)
+                self.games_list = ttk.Treeview(self.FrameGames, height = 20)
                 self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress', 'Playtime', 'Date Completed', 'Rating')
 
                 self.games_list.column("#0", width=0, stretch=NO)
@@ -1834,7 +1834,6 @@ class hangman:
                 self.hangman_window.focus()
                 self.btn_guess.config (state=DISABLED)
                 self.txt_guess.config (state=DISABLED)
-
 
 class export:
 
