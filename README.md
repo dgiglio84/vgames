@@ -2,6 +2,10 @@
 
 *UPDATES*
 
+2-4-2023
+- Added a Hangman mini-game.
+- Minor UI changes on the main window.
+
 1-28-2023
 - Filters and window state will now save on exit.
 - Game count now shows total games.
