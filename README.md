@@ -2,6 +2,9 @@
 
 *UPDATES*
 
+2-5-2023
+- Fixed a few bugs in the Hangman mini-game.
+
 2-4-2023
 - Added a Hangman mini-game.
 - Minor UI changes on the main window.
