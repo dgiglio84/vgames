@@ -1640,9 +1640,11 @@ class hangman:
                 #Word Creation
                 title = randomgame[1]
                 wordcreate = ""
-                #Removes special characters from title
                 for i, letter in enumerate(title):                       
-                        if letter == "'" or letter == ":" or letter == "!" or letter == "-" or letter == ".":
+                        if letter == " ":
+                                wordcreate += " "
+                        #Removes special characters from title
+                        elif letter.isalnum() == False:
                                 wordcreate += ""
                         else:
                                 wordcreate += letter
@@ -1654,7 +1656,8 @@ class hangman:
 
                 #Sets Already Guessed variable and label
                 self.alreadyguessed = ""
-                self.lbl_alreadyguessed.config (text = self.alreadyguessed)
+                self.alreadyguessed_show = ""
+                self.lbl_alreadyguessed.config (text = self.alreadyguessed_show)
 
                 #Sets "Info" label
                 self.lbl_info.config (text = "Make a guess!")
@@ -1816,9 +1819,18 @@ class hangman:
                         self.txt_guess.focus()
                         return
 
-                #Updates "Already Guessed" variable and label
-                self.alreadyguessed += guess + " "
-                self.lbl_alreadyguessed.config (text = self.alreadyguessed)
+                if guess.isalnum() == False:
+                        self.lbl_info.config(text = "Only enter letters or numbers!")
+                        self.txt_guess.delete (0, END)
+                        self.txt_guess.focus()
+                        return
+
+                #Updates "Already Guessed" variable
+                self.alreadyguessed += guess
+                #Only show letter/number in the "Already Guessed" label if it's NOT in word
+                if guess not in self.word:
+                        self.alreadyguessed_show += guess + " "
+                self.lbl_alreadyguessed.config (text = self.alreadyguessed_show)
 
                 #Checks if guess is good or bad
                 if guess not in self.word:
