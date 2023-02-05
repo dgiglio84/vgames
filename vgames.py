@@ -1652,7 +1652,7 @@ class hangman:
                 #Shows letter if not in "Already Guessed" box
                 for i, letter in enumerate(self.word):
                         if letter == " ":
-                                self.word_display += "  "
+                                self.word_display += "    "
                         elif letter in self.alreadyguessed:
                                 self.word_display += " " + letter + " "                     
                         elif letter not in self.alreadyguessed:
@@ -1784,22 +1784,22 @@ class hangman:
                 #Guess validation
                 if len(guess) > 1:
                         messagebox.showwarning ("Hangman", "Only enter 1 letter or number!")
+                        self.hangman_window.focus()
                         self.txt_guess.delete (0, END)
                         self.txt_guess.focus()
-                        self.hangman_window.focus()
                         return
 
                 if guess == "":
                         messagebox.showwarning ("Hangman", "No letters or numbers entered!")
-                        self.txt_guess.focus()
                         self.hangman_window.focus()
+                        self.txt_guess.focus()
                         return
                 
                 if guess in self.alreadyguessed:
                         messagebox.showwarning ("Hangman", guess + " has already been guessed!")
+                        self.hangman_window.focus()
                         self.txt_guess.delete (0, END)
                         self.txt_guess.focus()
-                        self.hangman_window.focus()
                         return
 
                 #Updates "Already Guessed" variable and label
