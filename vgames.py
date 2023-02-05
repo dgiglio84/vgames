@@ -1512,6 +1512,7 @@ class hangman:
                 self.hangman_window.iconbitmap("vgames.ico")
                 self.hangman_window.title("Hangman")
                 self.hangman_window.configure(bg='#404040')
+                self.hangman_window.state("zoomed")
                 self.hangman_window.bind('<Escape>', lambda event: self.hangman_window.destroy())
 
                 #Frames
@@ -1803,14 +1804,14 @@ class hangman:
                         return
 
                 #Updates "Already Guessed" variable and label
-                self.alreadyguessed += guess
+                self.alreadyguessed += guess + " "
                 self.lbl_alreadyguessed.config (text = self.alreadyguessed)
 
                 #Checks if guess is good or bad
                 if guess not in self.word:
                         self.tries -= 1
                         if self.tries == 0:
-                                messagebox.showwarning ("Hangman", "Out of tries! Game over!")
+                                messagebox.showinfo ("Hangman", "Out of tries! Game over!")
                                 self.end_game()
                         else:
                                 messagebox.showwarning ("Hangman", "Wrong Guess! " + str(self.tries) + " tries remaining!" )
@@ -1822,17 +1823,27 @@ class hangman:
                         self.update_word_display()
                         #Checks for win - no blank ( _ ) spaces
                         if "_" not in self.word_display:
-                                messagebox.showwarning ("Hangman", "You Won!")
+                                messagebox.showinfo ("Hangman", "You Won!")
                                 self.end_game()
                 
-
                 #Clears "Guess" text box and sets focus
                 self.txt_guess.delete(0, END)
                 self.txt_guess.focus()
         
         def end_game(self):
+
+                #Reveals word (if lost)
+                self.word_display = ""
+                for i, letter in enumerate(self.word):
+                        if letter == " ":
+                                self.word_display += "    "
+                        else:
+                                self.word_display += " " + letter + " "
+                self.lbl_word.config (text = self.word_display)
+
                 self.hangman_window.focus()
                 self.btn_guess.config (state=DISABLED)
+                self.txt_guess.delete (0, END)
                 self.txt_guess.config (state=DISABLED)
 
 class export:
