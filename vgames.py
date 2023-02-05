@@ -1684,8 +1684,8 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
+                "|                \n"
+                "|                \n"
                 "|\n"
                 "|\n"
                 "|\n"
