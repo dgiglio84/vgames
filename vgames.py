@@ -61,6 +61,7 @@ def create_database():
 	"CompanyID"	INTEGER NOT NULL DEFAULT '',
 	"GenreID"	INTEGER NOT NULL DEFAULT '',
 	"Format"	INTEGER NOT NULL DEFAULT '',
+        "Region"        INTEGER NOT NULL DEFAULT '',
 	"Progress"	INTEGER NOT NULL DEFAULT '',
 	"Playtime"	NUMERIC NOT NULL DEFAULT '',
 	"Date_Completed"	TEXT NOT NULL DEFAULT '',
@@ -106,6 +107,10 @@ def create_database():
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Rating NUMERIC NOT NULL DEFAULT ''")
         except:	
                 print ("Rating column already exists.")
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN Region NUMERIC NOT NULL DEFAULT ''")
+        except:	
+                print ("Region column already exists.")
 
         #Creates default Systems (if they don't exist)
         DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
@@ -113,7 +118,7 @@ def create_database():
         for row in DBSystems:
                 DBSystemsList.append(row[0])
 
-        DefaultSystems = ['Atari 2600', 'Colecovision', 'Dreamcast', 'Game Boy', 'Game Boy Advance', 'Game Boy Color', 'Gamecube', 'Game Gear', 'Genesis', 'NES', 'Nintendo 64', 'Nintendo 3DS', 'Nintendo DS', 'Nintendo Switch', 'PC', 'PS1', 'PS2', 'PS3', 'PS4', 'SNES', 'Wii', 'Wii U', 'Xbox 360', 'Xbox']
+        DefaultSystems = ['Atari 2600', 'Colecovision', 'Dreamcast', 'Famicom', 'Game Boy', 'Game Boy Advance', 'Game Boy Color', 'Gamecube', 'Game Gear', 'Genesis', 'NES', 'Nintendo 64', 'Nintendo 3DS', 'Nintendo DS', 'Nintendo Switch', 'PC', 'PS1', 'PS2', 'PS3', 'PS4', 'SNES', 'Super Famicom', 'Wii', 'Wii U', 'Xbox 360', 'Xbox']
         for System in DefaultSystems:
                 if System not in DBSystemsList:
                         database().execute ("INSERT INTO tbl_System (SystemID, SystemName) VALUES (null, ?)", (System,))
@@ -160,10 +165,11 @@ class main_window:
                 #Creates STATS pop-up menu
                 self.popup_stats = Menu(master, tearoff = 0)
                 self.popup_stats.add_command(label="Total Games Per System", command=lambda: stats(self.system_menu_option.get()).System())
-                self.popup_stats.add_command(label="Games By Format", command=lambda: stats(self.system_menu_option.get()).Format())
                 self.popup_stats.add_separator()
+                self.popup_stats.add_command(label="Games By Format", command=lambda: stats(self.system_menu_option.get()).Format())
                 self.popup_stats.add_command(label="Games By Genre",command=lambda:stats(self.system_menu_option.get()).Genre())
                 self.popup_stats.add_command(label="Games By Decade",command=lambda:stats(self.system_menu_option.get()).Decade())
+                self.popup_stats.add_command(label="Games By Region",command=lambda:stats(self.system_menu_option.get()).Region())
                 self.popup_stats.add_separator()
                 self.popup_stats.add_command(label="Progress", command=lambda: stats(self.system_menu_option.get()).Progress())
                 self.popup_stats.add_command(label="Highest Playtime", command=lambda: stats(self.system_menu_option.get()).Playtime())
@@ -221,6 +227,10 @@ class main_window:
                 self.FrameFormat=LabelFrame(self.FrameTop, text="Format", padx=5, pady=5, fg="yellow", bg="black")
                 self.FrameFormat.pack (side=LEFT, padx=5, pady=5)
 
+                #Creates Region box frame
+                self.FrameRegion=LabelFrame(self.FrameTop, text="Region", padx=5, pady=5, fg="yellow", bg="black")
+                self.FrameRegion.pack (side=LEFT, padx=5, pady=5)
+
                 #Creates Progress box frame
                 self.FrameProgress=LabelFrame(self.FrameTop, text="Progress", padx=5, pady=5, fg="yellow", bg="black")
                 self.FrameProgress.pack (side=LEFT, padx=5, pady=5)
@@ -266,6 +276,22 @@ class main_window:
                 self.system_menu_option.set("All")
                 self.system_menu_option.grid(row=0,column=0) 
 
+                #Format Selection Menu
+                values = ['All', 'Physical', 'Digital', 'Other']
+                self.FormatSelection = StringVar()
+                self.FormatSelection = ttk.Combobox(self.FrameFormat, values = values, state="readonly", width=10)
+                self.FormatSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
+                self.FormatSelection.set("All")
+                self.FormatSelection.grid(row=0, column=0)
+
+                #Region Selection Menu
+                values = ['All', 'NTSC-U/C', 'NTSC-J', 'NTSC-C', 'PAL']
+                self.RegionSelection = StringVar()
+                self.RegionSelection = ttk.Combobox(self.FrameRegion, values = values, state="readonly", width=10)
+                self.RegionSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
+                self.RegionSelection.set("All")
+                self.RegionSelection.grid(row=0, column=0)
+
                 #Progress Selection Menu
                 values = ['All', 'Complete', 'Incomplete', 'Currently Playing', 'Backlog', 'N/A']
                 self.ProgressSelection = StringVar()
@@ -273,14 +299,6 @@ class main_window:
                 self.ProgressSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
                 self.ProgressSelection.set("All")
                 self.ProgressSelection.grid(row=0,column=0) 
-
-                #Format Selection Menu
-                values = ['All', 'Physical', 'Digital', 'Other']
-                self.FormatSelection = StringVar()
-                self.FormatSelection = ttk.Combobox(self.FrameFormat, values = values, state="readonly")
-                self.FormatSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_game_list())
-                self.FormatSelection.set("All")
-                self.FormatSelection.grid(row=0, column=0)
 
                 #Search bar
                 self.txt_search_bar = Entry(self.FrameSearch, width = 40)
@@ -330,7 +348,7 @@ class main_window:
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
                 self.games_list = ttk.Treeview(self.FrameGames, height = 20)
-                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Progress', 'Playtime', 'Date Completed', 'Rating')
+                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Region', 'Progress', 'Playtime', 'Date Completed', 'Rating')
 
                 self.games_list.column("#0", width=0, stretch=NO)
 
@@ -341,6 +359,7 @@ class main_window:
                 self.games_list.column("Company",anchor=W,width=150)
                 self.games_list.column("Genre",anchor=W,width=150)
                 self.games_list.column("Format",anchor=W,width=100)
+                self.games_list.column("Region",anchor=W,width=80)
 
                 # 'Stats' columns
                 self.games_list.column("Progress",anchor=W,width=120)
@@ -355,6 +374,7 @@ class main_window:
                 self.games_list.heading("Company",text="Company",anchor=W, command=lambda: self.sort_column (self.games_list, "Company", False))
                 self.games_list.heading("Genre",text="Genre",anchor=W, command=lambda: self.sort_column (self.games_list, "Genre", False))
                 self.games_list.heading("Format",text="Format",anchor=W, command=lambda: self.sort_column (self.games_list, "Format", False))
+                self.games_list.heading("Region",text="Region",anchor=W, command=lambda: self.sort_column (self.games_list, "Region", False))
                 self.games_list.heading("Progress",text="Progress",anchor=W, command=lambda: self.sort_column (self.games_list, "Progress", False))
                 self.games_list.heading("Playtime",text="Playtime",anchor=W, command=lambda: self.sort_column (self.games_list, "Playtime", False))
                 self.games_list.heading("Date Completed",text="Date Completed",anchor=W, command=lambda: self.sort_column (self.games_list, "Date Completed", False))
@@ -374,22 +394,29 @@ class main_window:
 
                 #Imports filters and window size from "vgames.ini" file
                 if os.path.exists('vgames.ini'):  
-                        config = configparser.ConfigParser()
-                        config.read('vgames.ini')
+                        
+                        try:
+                                config = configparser.ConfigParser()
+                                config.read('vgames.ini')
 
-                        SystemName = config.get('FILTERS', 'SystemName')
-                        Progress = config.get('FILTERS', 'Progress')
-                        Format = config.get('FILTERS', 'Format')
-                        View = config.get('FILTERS', 'View')
-                        SearchString = config.get ('FILTERS', 'SearchString')
-                        State = config.get ('WINDOW', 'State')
+                                SystemName = config.get('FILTERS', 'SystemName')
+                                Progress = config.get('FILTERS', 'Progress')
+                                Format = config.get('FILTERS', 'Format')
+                                Region = config.get('FILTERS', 'Region')
+                                View = config.get('FILTERS', 'View')
+                                SearchString = config.get ('FILTERS', 'SearchString')
+                                State = config.get ('WINDOW', 'State')
 
-                        self.system_menu_option.set(SystemName)
-                        self.ProgressSelection.set(Progress)
-                        self.FormatSelection.set(Format)
-                        self.ViewSelection.set(View)
-                        self.txt_search_bar.insert(0, SearchString)
-                        self.master.state(State)
+                                self.system_menu_option.set(SystemName)
+                                self.ProgressSelection.set(Progress)
+                                self.FormatSelection.set(Format)
+                                self.RegionSelection.set(Region)
+                                self.ViewSelection.set(View)
+                                self.txt_search_bar.insert(0, SearchString)
+                                self.master.state(State)
+                        except:
+                                #Passes try block if config line is not found.
+                                pass
 
                 #Initial update of the Treeview Games list
                 self.update_game_list()
@@ -518,6 +545,7 @@ class main_window:
                 SystemName = self.system_menu_option.get()
                 Progress = self.ProgressSelection.get()
                 Format = self.FormatSelection.get()
+                Region = self.RegionSelection.get()
                 View = self.ViewSelection.get()
                 SearchString = self.txt_search_bar.get()
 
@@ -536,37 +564,41 @@ class main_window:
                 #Sets SystemName variable to wildcard when "All" is selected
                 if SystemName == "All":
                         SystemName = "%"
-
-                #Sets "Progress" variable to wildcard if "All" is selected
-                if Format == "All":
-                        Format = "%"
                 
                 #Sets "Format" variable to wildcard if "All" is selected
                 if Progress == "All":
                         Progress = "%"
                 
+                #Sets "Region" variable to wildcard if "All" is selected
+                if Region == "All":
+                        Region = "%"
+
+                #Sets "Progress" variable to wildcard if "All" is selected
+                if Format == "All":
+                        Format = "%"
+                
                 #Sets SearchString variable to wildcard when Search box is empty
                 if SearchString == "":
                         SearchString = "%"
 
-                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating
+                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating
                         FROM tbl_Games
                         LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                         LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
 			LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
-                        WHERE (Title LIKE ? OR Company LIKE ? OR Genre LIKE ?) AND SystemName LIKE ? AND Progress LIKE ? AND Format LIKE ?
-                        ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format))
+                        WHERE (Title LIKE ? OR Company LIKE ? OR Genre LIKE ?) AND SystemName LIKE ? AND Progress LIKE ? AND Format LIKE ? AND Region LIKE ?
+                        ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format, Region))
                 
                 #Displays all games in Treeview. NOTE: The iid is set to the GameID in the DB.
                 gamecount = 0
                 for column in Records:
                         self.games_list.insert("", index='end',iid=column[0], text="",
-                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10]))
+                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10], column[11]))
                         gamecount += 1
 
                 #Sets Treeview columns based on "View" combo box
                 if View == "Game Info":
-                        self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format")
+                        self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region")
                 if View == "Stats":
                         self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Completed", "Rating")
 
@@ -607,7 +639,9 @@ class main_window:
                         messagebox.showwarning ("Delete", "No game selected!")
                         return
                
-                del_prompt = messagebox.askyesno("Delete", "Delete this game?", default = 'no')
+                Title = database().fetchone("SELECT Title FROM tbl_Games where GameID = ?", (GameID,))
+
+                del_prompt = messagebox.askyesno("Delete", "Are you sure you want to delete " + Title[0] + "?", default = 'no')
                 
                 if del_prompt == 1:
                         database().execute ("DELETE FROM tbl_Games where GameID = ?", (GameID,))
@@ -621,12 +655,12 @@ class main_window:
         def duplicate_game(self, GameID):
                 
                 #Grabs current Treeview selection record data.
-                old_game = database().fetchone ("""SELECT tbl_Games.GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Progress, Playtime, Date_Completed, Rating, tbl_Games.Notes 
+                old_game = database().fetchone ("""SELECT tbl_Games.GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region 
                         FROM tbl_Games
                         WHERE GameID = ?""", (GameID,))  
                
-                #Duplicates game
-                database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
+                #Duplicates game (leaves out 'Stats' fields)
+                database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
                         {
 
                         'SystemID': old_game[1],
@@ -635,14 +669,15 @@ class main_window:
                         'CompanyID': old_game[4],
                         'GenreID': old_game[5],
                         'Format': old_game[6],
-                        'Progress': old_game[7],                       
-                        'Playtime': old_game[8],
+                        'Region': old_game[7],
+                        'Progress': "",                       
+                        'Playtime': "",
                         'Date_Completed': "",
                         'Rating': "",
-                        'Notes': old_game[10]                                
+                        'Notes': ""                                
                         })
                 
-                messagebox.showwarning ("Duplicate Game", "Game Duplicated!")
+                messagebox.showwarning ("Duplicate Game", old_game[2] + " duplicated!")
 
                 #Updates variable to indicate changes have been made
                 self.changes = True
@@ -732,6 +767,7 @@ class main_window:
                         'SystemName': self.system_menu_option.get(), 
                         'Progress': self.ProgressSelection.get(),
                         'Format': self.FormatSelection.get(),
+                        'Region': self.RegionSelection.get(),
                         'View': self.ViewSelection.get(),
                         'SearchString': self.txt_search_bar.get()
                                 }
@@ -785,7 +821,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("725x415")
+                self.game_info_window.geometry("725x425")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
                 self.game_info_window.bind('<Escape>', lambda event: self.game_info_window.destroy())
@@ -875,6 +911,12 @@ class game_info_window:
                 self.txt_Format = ttk.Combobox(self.framegameinfo, value = self.format_list, state="readonly", width = 8)
                 self.txt_Format.grid(row = 4, column= 1, sticky=W)
 
+                self.lbl_Region = Label (self.framegameinfo, text= "Region:", fg="white", bg="black")
+                self.lbl_Region.grid(row = 5, column=0, sticky=E, padx = 5)
+                self.region_list = ['NTSC-U/C', 'NTSC-J', 'NTSC-C', 'PAL']
+                self.txt_Region = ttk.Combobox(self.framegameinfo, value = self.region_list, state="readonly", width = 12)
+                self.txt_Region.grid(row = 5, column= 1, sticky=W)
+
                 self.lbl_Progress = Label (self.framestats, text= "Progress:", fg="white", bg="black")
                 self.lbl_Progress.grid(row = 1, column=0, sticky=E, padx = 5)
                 self.progress_list = ['Incomplete', 'Complete', 'Currently Playing', 'Backlog', 'N/A']
@@ -898,6 +940,10 @@ class game_info_window:
                 self.ratings_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                 self.txt_Rating = ttk.Combobox(self.framestats, value = self.ratings_list, width = 5)
                 self.txt_Rating.grid(row = 4, column= 1, sticky=W)
+
+                #Bottom Spacer for the "Stats" frame
+                self.lbl_Space = Label (self.framestats, text= "", fg="white", bg="black")
+                self.lbl_Space.grid(row = 5, column=0, sticky=E, padx = 5)
 
                 #Button to clear the "Date Completed" field
                 self.btn_clear_Date_Completed = Button (
@@ -977,7 +1023,7 @@ class game_info_window:
                         return
 
                 #Grabs current Treeview selection record data.
-                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Playtime, Date_Completed, Rating, tbl_Games.Notes 
+                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Completed, Rating, tbl_Games.Notes 
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -993,15 +1039,16 @@ class game_info_window:
                 self.txt_Genre.set(old_field[5])
                 self.txt_Progress.set(old_field[6])
                 self.txt_Format.set(old_field[7])
-                self.txt_Playtime.insert(0, old_field[8])
+                self.txt_Region.set(old_field[8])
+                self.txt_Playtime.insert(0, old_field[9])
 
                 #'Date_Completed' field is temporary enabled to insert old field text. 
                 self.txt_Date_Completed.config(state=NORMAL)
-                self.txt_Date_Completed.insert(0, old_field[9])      
+                self.txt_Date_Completed.insert(0, old_field[10])      
                 self.txt_Date_Completed.config(state='readonly')
 
-                self.txt_Rating.set(old_field[10])
-                self.txt_Notes.insert(0, old_field[11])
+                self.txt_Rating.set(old_field[11])
+                self.txt_Notes.insert(0, old_field[12])
 
                 btn_update = Button(
                         self.framebuttons,
@@ -1107,7 +1154,7 @@ class game_info_window:
                 #Creates a new record
                 if New:
 
-                        database().execute("INSERT INTO tbl_Games VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
+                        database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
                                 {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1115,6 +1162,7 @@ class game_info_window:
                                 'CompanyID': CompanyID[0],
                                 'GenreID': GenreID[0],
                                 'Format': self.txt_Format.get(),
+                                'Region': self.txt_Region.get(),
                                 'Progress': self.txt_Progress.get(),
                                 'Playtime': self.txt_Playtime.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
@@ -1127,7 +1175,7 @@ class game_info_window:
                 #Updates record
                 else:
                         
-                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Progress = :Progress, Playtime = :Playtime, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
+                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Region = :Region, Progress = :Progress, Playtime = :Playtime, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
                         {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1135,6 +1183,7 @@ class game_info_window:
                                 'Company': CompanyID[0],
                                 'GenreID': GenreID[0],
                                 'Format': self.txt_Format.get(),
+                                'Region': self.txt_Region.get(),
                                 'Notes': self.txt_Notes.get(),
                                 'Progress': self.txt_Progress.get(),
                                 'Playtime': self.txt_Playtime.get(),
@@ -1547,7 +1596,7 @@ class hangman:
                 self.lbl_hangman.grid(row=0, column=0)
 
                 #Word
-                self.lbl_word = Label (self.frameword, font = "bold", fg="white", bg="black")
+                self.lbl_word = Label (self.frameword, fg="white", bg="black")
                 self.lbl_word.grid (row=0, column=0)
 
                 #Hint
@@ -1701,8 +1750,8 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
+                "|               |\n"
+                "|               |\n"
                 "|\n"
                 "|\n"
                 "|\n"
@@ -1715,8 +1764,8 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
+                "|               |\n"
+                "|               |\n"
                 "|                O\n"
                 "|\n"
                 "|\n"
@@ -1729,10 +1778,10 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
-                "|                O\n"
-                "|                |\n"
+                "|               |\n"
+                "|               |\n"
+                "|               O\n"
+                "|               |\n"
                 "|\n"
                 "|\n"
                 "|_________"
@@ -1743,10 +1792,10 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
-                "|                O\n"
-                "|               /|\n"
+                "|               |\n"
+                "|               |\n"
+                "|               O\n"
+                "|              /|\n"
                 "|\n"
                 "|\n"
                 "|_________"
@@ -1758,10 +1807,10 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
-                "|                O\n"
-                "|               /|\ \n"
+                "|               |\n"
+                "|               |\n"
+                "|               O\n"
+                "|              /|\ \n"
                 "|\n"
                 "|\n"
                 "|_________"
@@ -1772,11 +1821,11 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
-                "|                O\n"
-                "|               /|\ \n"
-                "|               / \n"
+                "|               |\n"
+                "|               |\n"
+                "|               O\n"
+                "|              /|\ \n"
+                "|              / \n"
                 "|\n"
                 "|_________"
 
@@ -1786,11 +1835,11 @@ class hangman:
 
                         self.lbl_hangman.config (text =
                 "________\n"
-                "|                |\n"
-                "|                |\n"
-                "|                O\n"
-                "|               /|\ \n"
-                "|               / \ \n"
+                "|               |\n"
+                "|               |\n"
+                "|               O\n"
+                "|              /|\ \n"
+                "|              / \ \n"
                 "|\n"
                 "|_________"
 
@@ -1881,7 +1930,7 @@ class export:
         def __init__(self):
                 #Creates Panadas Dataframe with all records
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating, Notes
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating, Notes
                 FROM tbl_Games
                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -1925,7 +1974,7 @@ class stats:
                         
                 #Creates Pandas DataFrame from SQL query
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Progress, Playtime, Date_Completed, Rating
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
@@ -1944,16 +1993,6 @@ class stats:
                 plt.title(Title)
                 plt.show()
 
-        def Format(self):
-                if self.SystemName == "%":
-                        Title = "Games By Format - All Systems"
-                else:
-                        Title = "Games By Format - " + self.SystemName
-                plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
-                self.df.Format.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
-                plt.title(Title)
-                plt.show()     
 
         def Playtime(self):
                 if self.SystemName == "%":
@@ -1975,7 +2014,8 @@ class stats:
                 plt.xlabel ("Hours")
                 plt.ylabel ("Game")
                 plt.show()
-                       
+                
+
         def Genre(self):
                 if self.SystemName == "%":
                         Title = "Total Games by Genre - All Systems"
@@ -1993,7 +2033,29 @@ class stats:
                 #Adds values to bars
                 for i, v in enumerate(GenreCount):
                         plt.text(v + 1, i - .25, str(v))
-                plt.show()  
+                plt.show()
+        
+        def Format(self):
+                if self.SystemName == "%":
+                        Title = "Games By Format - All Systems"
+                else:
+                        Title = "Games By Format - " + self.SystemName
+                plt.figure(Title)
+                plt.get_current_fig_manager().window.state('zoomed')
+                self.df.Format.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
+                plt.title(Title)
+                plt.show()
+
+        def Region(self):
+                if self.SystemName == "%":
+                        Title = "Games By Region - All Systems"
+                else:
+                        Title = "Games By Region - " + self.SystemName
+                plt.figure(Title)
+                plt.get_current_fig_manager().window.state('zoomed')
+                self.df.Region.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
+                plt.title(Title)
+                plt.show()     
 
         def Decade(self):
                 if self.SystemName == "%":
