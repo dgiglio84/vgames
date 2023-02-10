@@ -2,6 +2,9 @@
 
 *UPDATES*
 
+2-9-2023
+- Added a "Region" field.
+
 2-5-2023
 - Fixed a few bugs in the Hangman mini-game.
 
