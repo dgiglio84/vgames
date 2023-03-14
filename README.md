@@ -3,7 +3,7 @@
 *UPDATES*
 
 3-13-2023
--SQL queries can be executed via a hidden window. To access this window, hold down CTRL and right-click on the "Wish List" button.
+- SQL queries can be executed via a hidden window. To access this window, hold down CTRL and right-click on the "Wish List" button.
 
 2-9-2023
 - Added a "Region" field.
