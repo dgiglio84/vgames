@@ -18,6 +18,7 @@ class database:
         def __init__ (self):
                 self.conn = sqlite3.connect('vgames.db')
                 self.cursor = self.conn.cursor()
+                self.cursor.execute("PRAGMA foreign_keys = 1")
         def open (self):
                 conn = self.conn
                 return conn
@@ -524,6 +525,9 @@ class main_window:
                         command=lambda: wish_list_window(self)
                 )
                 self.btn_wishlist.grid(row=0, column=0, padx=5, pady=5)
+
+                self.btn_wishlist.bind('<Control-Button-2>', lambda event: sql_query_window(self))
+                self.btn_wishlist.bind('<Control-Button-3>', lambda event: sql_query_window(self))
        
                 #Creates variable to detect if changes have been made to the database
                 self.changes = False
@@ -533,7 +537,6 @@ class main_window:
                 initial_wishlist_count = count[0]
                 self.btn_wishlist.config (text= "Wish List (" + str(initial_wishlist_count) + ")")
 
-        
         def update_game_list(self):
                 
                 #Clears current Treeview
@@ -1550,6 +1553,69 @@ class random_game_window:
                 #Displays randomly generated game in a labels
                 self.lbl_title.config (text= Rand_Game[0])
                 self.lbl_system.config (text= Rand_Game[1])
+
+class sql_query_window:
+        
+        def __init__(self, main_window):
+                
+                self.main_window = main_window
+
+                self.sql_query_window=Toplevel()
+                self.sql_query_window.geometry("500x150")
+                self.sql_query_window.title("Execute SQL Query")
+                self.sql_query_window.iconbitmap("vgames.ico")
+                self.sql_query_window.configure(bg='#404040')
+
+                self.frametop=LabelFrame(self.sql_query_window, padx=10, pady=10, bg = 'black')
+                self.frametop.pack (side= TOP, padx=5, pady=5)
+                self.framebottom=LabelFrame(self.sql_query_window, bg = 'black', padx = 5, pady =5)
+                self.framebottom.pack (side=BOTTOM, padx=5, pady =5)
+
+                self.lbl_sqlquery = Label (self.frametop, text= "Enter SQL Query:", font = "bold", fg="white", bg="black")
+                self.lbl_sqlquery.grid(row = 0, column=0, sticky=W, padx = 5)
+                self.txt_sqlquery = Entry (self.frametop, font = "bold", fg = "black", bg = "white", width=50)
+                self.txt_sqlquery.grid(row = 1, column= 0, sticky=W)
+
+                self.btn_execute = Button(
+                self.framebottom,
+                text = "Execute",
+                width = 15,
+                height= 2,
+                bg="green",
+                fg="white",
+                command=self.execute
+
+                ) 
+                self.btn_execute.grid(row=0, column=0, padx=5, pady=5)
+
+                self.btn_cancel = Button(
+                self.framebottom,
+                text = "Cancel",
+                width = 15,
+                height= 2,
+                bg="red",
+                fg="white",
+                command=self.sql_query_window.destroy
+
+                ) 
+                self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
+
+        def execute(self):
+
+                sql_query = self.txt_sqlquery.get()
+                msgbox_text = "Are you sure you want to run the SQL query below? THIS CAN'T BE UNDONE!\n\n" + sql_query
+
+                response = messagebox.askyesno ("Execute SQL Query", msgbox_text)
+                if response:
+                        try:
+                                database().execute(sql_query)
+                                self.main_window.changes = True
+                                self.main_window.update_game_list()
+                                self.sql_query_window.destroy()
+                        except:
+                                messagebox.showwarning ("Execute SQL Query", "SQL Query Failed!")
+                                self.sql_query_window.destroy()
+
 
 class hangman:
         
