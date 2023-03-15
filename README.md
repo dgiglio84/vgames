@@ -2,8 +2,11 @@
 
 *UPDATES*
 
+3-14-2023
+- A backup of the vgames.db database file is now created on startup. The file is called <b>vgames.bak</b>.
+
 3-13-2023
-- SQL queries can be executed via a hidden window. To access this window, hold down CTRL and right-click on the "Wish List" button.
+- Added a hidden window that allows you to execute SQL queries. To access it, hold down CTRL and right-click on the "Wish List" button.
 
 2-9-2023
 - Added a "Region" field.
