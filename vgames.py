@@ -1,5 +1,6 @@
 import datetime
 import os
+import shutil
 import random
 import sqlite3
 import tkinter as tk
@@ -13,6 +14,10 @@ from ttkwidgets.autocomplete import AutocompleteCombobox
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import pandas as pd
+
+#Makes a backup copy of the vgames.db file
+if os.path.exists('vgames.db'):
+        shutil.copyfile( 'vgames.db' , 'vgames.bak' )
 
 class database:
         def __init__ (self):
@@ -1662,7 +1667,7 @@ class hangman:
                 self.lbl_hangman.grid(row=0, column=0)
 
                 #Word
-                self.lbl_word = Label (self.frameword, fg="white", bg="black")
+                self.lbl_word = Label (self.frameword, font="bold", fg="white", bg="black")
                 self.lbl_word.grid (row=0, column=0)
 
                 #Hint
