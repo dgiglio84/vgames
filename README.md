@@ -7,7 +7,7 @@
 - A backup of the database is still created upon startup. However, you can now restore this backup by clicking <b>Tools > Backup/Restore Database > Restore Auto-Backup</b>.
 
 3-14-2023
-- A backup of the vgames.db database file is now created on startup. The file is called <b>vgames.bak</b>.
+- A backup of the vgames.db database file is now created on startup. The file is called <b>vgames.old.db</b>.
 
 3-13-2023
 - Added a hidden window that allows you to execute SQL queries. To access it, hold down CTRL and right-click on the "Tools" button.
