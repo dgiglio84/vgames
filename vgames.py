@@ -2079,13 +2079,16 @@ class backup:
                         os.remove('vgames.oops')
 
         def restore_autobackup(self):
-                if os.path.exists('vgames.old.db'):
-                        shutil.copyfile( 'vgames.old.db' , 'vgames.db' )
-                        messagebox.showwarning ("Restore Auto-Backup", "Auto-Backup Restored!")  
-                        self.main_window.update_game_list()
-                        self.main_window.update_systems_menu()
-                else:
-                      messagebox.showwarning ("Restore Auto-Backup", "Vgames.old.db not found!")  
+
+                response = messagebox.askyesno ("Restore Auto-Backup", "Are you sure you want to restore the database from the beginning of the current session?", default='no')
+                if response:
+                        if os.path.exists('vgames.old.db'):
+                                shutil.copyfile( 'vgames.old.db' , 'vgames.db' )
+                                messagebox.showwarning ("Restore Auto-Backup", "Auto-Backup Restored!")  
+                                self.main_window.update_game_list()
+                                self.main_window.update_systems_menu()
+                        else:
+                                messagebox.showwarning ("Restore Auto-Backup", "Vgames.old.db not found!")  
 
 class stats:
 
