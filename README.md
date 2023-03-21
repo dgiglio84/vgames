@@ -3,8 +3,8 @@
 *UPDATES*
 
 3-20-2023
-- Added a Backup/Restore feature. This can be found in the "Tools" menu.
-- A backup of the database is still created upon startup. However, the file has been renamed to "vgames.old.db." This allows you to easily restore the backup using the newly created "Restore" feature.
+- Added a Backup/Restore feature. This can be found in <b>Tools > Backup/Restore Database</b>.
+- A backup of the database is still created upon startup. However, you can now restore this backup by clicking <b>Tools > Backup/Restore Database > Restore Auto-Backup</b>.
 
 3-14-2023
 - A backup of the vgames.db database file is now created on startup. The file is called <b>vgames.bak</b>.
