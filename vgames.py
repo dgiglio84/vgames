@@ -212,6 +212,8 @@ class main_window:
                 self.popup_backup = Menu(master, tearoff = 0)
                 self.popup_backup.add_command(label = "Backup", command=lambda: backup(self).backup())
                 self.popup_backup.add_command(label = "Restore", command=lambda: backup(self).restore())
+                self.popup_backup.add_separator()
+                self.popup_backup.add_command(label = "Restore Auto-Backup", command=lambda: backup(self).restore_autobackup())
 
                 #Creates TOOLS pop-up menu
                 self.popup_tools = Menu(master, tearoff = 0)
@@ -2075,6 +2077,15 @@ class backup:
                                 self.main_window.update_systems_menu()
 
                         os.remove('vgames.oops')
+
+        def restore_autobackup(self):
+                if os.path.exists('vgames.old.db'):
+                        shutil.copyfile( 'vgames.old.db' , 'vgames.db' )
+                        messagebox.showwarning ("Restore Auto-Backup", "Auto-Backup Restored!")  
+                        self.main_window.update_game_list()
+                        self.main_window.update_systems_menu()
+                else:
+                      messagebox.showwarning ("Restore Auto-Backup", "Vgames.old.db not found!")  
 
 class stats:
 
