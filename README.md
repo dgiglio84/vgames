@@ -2,11 +2,15 @@
 
 *UPDATES*
 
+3-20-2023
+- Added a Backup/Restore feature. This can be found in the "Tools" menu.
+- A backup of the database is still created upon startup. However, the file has been renamed to "vgames.old.db." This allows you to easily restore the backup using the newly created "Restore" feature.
+
 3-14-2023
 - A backup of the vgames.db database file is now created on startup. The file is called <b>vgames.bak</b>.
 
 3-13-2023
-- Added a hidden window that allows you to execute SQL queries. To access it, hold down CTRL and right-click on the "Wish List" button.
+- Added a hidden window that allows you to execute SQL queries. To access it, hold down CTRL and right-click on the "Tools" button.
 
 2-9-2023
 - Added a "Region" field.
