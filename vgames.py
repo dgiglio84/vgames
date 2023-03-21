@@ -8,7 +8,7 @@ import webbrowser
 import configparser
 from tkinter import *
 from tkinter import messagebox, ttk
-from tkinter.filedialog import asksaveasfilename
+from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkcalendar import DateEntry
 from ttkwidgets.autocomplete import AutocompleteCombobox
 from textwrap import wrap
@@ -17,7 +17,7 @@ import pandas as pd
 
 #Makes a backup copy of the vgames.db file
 if os.path.exists('vgames.db'):
-        shutil.copyfile( 'vgames.db' , 'vgames.bak' )
+        shutil.copyfile( 'vgames.db' , 'vgames.old.db' )
 
 class database:
         def __init__ (self):
@@ -207,6 +207,17 @@ class main_window:
                 self.popup_export = Menu(master, tearoff = 0)
                 self.popup_export.add_command(label = "CSV", command=lambda: export().csv())
                 self.popup_export.add_command(label = "Google Sheets", command=lambda: export().gsheets())
+
+                #Creates BACKUP/RESTORE pop-up menu
+                self.popup_backup = Menu(master, tearoff = 0)
+                self.popup_backup.add_command(label = "Backup", command=lambda: backup(self).backup())
+                self.popup_backup.add_command(label = "Restore", command=lambda: backup(self).restore())
+
+                #Creates TOOLS pop-up menu
+                self.popup_tools = Menu(master, tearoff = 0)
+                self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
+                self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)
+
 
                 #Creates RIGHT CLICK pop-up menu
                 self.popup_right_click = Menu(master, tearoff = 0)
@@ -437,7 +448,7 @@ class main_window:
                 self.btn_new = Button(
                         self.FrameButtons1,
                         text = "New",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="green",
                         fg="white",
@@ -449,7 +460,7 @@ class main_window:
                 self.btn_view = Button(
                         self.FrameButtons1,
                         text = "View/Edit",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="#000099",
                         fg="white",
@@ -461,7 +472,7 @@ class main_window:
                 self.btn_delete = Button(
                         self.FrameButtons1,
                         text = "Delete",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="red",
                         fg="white",
@@ -473,7 +484,7 @@ class main_window:
                 self.btn_random = Button(
                         self.FrameButtons2,
                         text = "Random Game",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="purple",
                         fg="white",
@@ -482,36 +493,36 @@ class main_window:
 
                 self.btn_random.grid(row=0, column=0, padx=5, pady=5)
 
-
-                self.btn_export = Button(
-                        self.FrameButtons2,
-                        text = "Export",
-                        width = 15,
-                        height= 2,
-                        bg="#004d00",
-                        fg="white",
-                        command=lambda: main_window_popup_menu (self, 0).Export()
-                )
-
-                self.btn_export.grid(row=0, column=1, padx=5, pady=5)
-
                 self.btn_stats = Button(
                         self.FrameButtons2,
                         text = "Stats",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="#cc3300",
                         fg="white",
                         command=lambda: main_window_popup_menu (self, 0).Stats()
                 )
 
-                self.btn_stats.grid(row=0, column=2, padx=5, pady=5)
+                self.btn_stats.grid(row=0, column=1, padx=5, pady=5)
 
+                self.btn_tools = Button(
+                        self.FrameButtons3,
+                        text = "Tools",
+                        width = 13,
+                        height= 2,
+                        bg="#004d00",
+                        fg="white",
+                        command=lambda: main_window_popup_menu (self, 0).Tools()
+                )
 
+                self.btn_tools.grid(row=0, column=1, padx=5, pady=5)
+
+                self.btn_tools.bind('<Control-Button-2>', lambda event: sql_query_window(self))
+                self.btn_tools.bind('<Control-Button-3>', lambda event: sql_query_window(self))
                 self.btn_hangman = Button(
                         self.FrameButtons3,
                         text = "Hangman",
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="#0000e6",
                         fg="white",
@@ -523,16 +534,13 @@ class main_window:
                 #Wish List button
                 self.btn_wishlist = Button(
                         self.FrameButtons4,
-                        width = 15,
+                        width = 13,
                         height= 2,
                         bg="yellow",
                         fg="black",
                         command=lambda: wish_list_window(self)
                 )
                 self.btn_wishlist.grid(row=0, column=0, padx=5, pady=5)
-
-                self.btn_wishlist.bind('<Control-Button-2>', lambda event: sql_query_window(self))
-                self.btn_wishlist.bind('<Control-Button-3>', lambda event: sql_query_window(self))
        
                 #Creates variable to detect if changes have been made to the database
                 self.changes = False
@@ -815,11 +823,11 @@ class main_window_popup_menu:
                         y = self.main_window.btn_stats.winfo_rooty() - 75
                         self.main_window.popup_stats.tk_popup(x, y, 0)
                 
-                def Export(self):
+                def Tools(self):
                         #Displays Export popup menu
-                        x = self.main_window.btn_export.winfo_rootx()
-                        y = self.main_window.btn_export.winfo_rooty() - 40
-                        self.main_window.popup_export.tk_popup(x, y, 0)
+                        x = self.main_window.btn_tools.winfo_rootx()
+                        y = self.main_window.btn_tools.winfo_rooty() - 40
+                        self.main_window.popup_tools.tk_popup(x, y, 0)
 
 class game_info_window:
         
@@ -1610,7 +1618,7 @@ class sql_query_window:
                 sql_query = self.txt_sqlquery.get()
                 msgbox_text = "Are you sure you want to run the SQL query below? THIS CAN'T BE UNDONE!\n\n" + sql_query
 
-                response = messagebox.askyesno ("Execute SQL Query", msgbox_text)
+                response = messagebox.askyesno ("Execute SQL Query", msgbox_text, default='no')
                 if response:
                         try:
                                 database().execute(sql_query)
@@ -1620,7 +1628,6 @@ class sql_query_window:
                         except:
                                 messagebox.showwarning ("Execute SQL Query", "SQL Query Failed!")
                                 self.sql_query_window.destroy()
-
 
 class hangman:
         
@@ -2033,6 +2040,41 @@ class export:
                 if opengsheetprompt == True:
                         webbrowser.open("https://docs.google.com/spreadsheets/u/0/")
 
+class backup:
+        def __init__(self, main_window):
+                self.main_window = main_window
+
+        def backup(self):
+                #Save dialog box
+                filedate = datetime.date.today()
+                db_backup_file = asksaveasfilename (initialdir=os.getcwd(), initialfile = 'vgames-' + str(filedate), defaultextension=".db", filetypes=[('Database file','*.db'), ('All files','*.*')], title="Backup Database")
+                if db_backup_file== "": 
+                        return
+                shutil.copyfile('vgames.db' , db_backup_file)
+                messagebox.showwarning ("Backup", "Database Backed Up Successfully!")
+
+        def restore(self):
+                db_import_file = askopenfilename(initialdir=os.getcwd(), filetypes=[('Database file','*.db'), ('All files','*.*')], title="Restore Database") 
+                if db_import_file== "": 
+                        return
+                
+                response = messagebox.askyesno ("Restore Database", "Are you sure you want to restore the database using this file?\nTHIS CANNOT BE UNDONE!", default='no')
+                if response:
+                        #Creates a backup of the current DB
+                        shutil.copyfile('vgames.db', "vgames.oops")
+                        try:
+                                shutil.copyfile(db_import_file, 'vgames.db')
+                                create_database()
+                                self.main_window.update_game_list()
+                                messagebox.showwarning ("Restore", "Database restored successfully!")
+                        except:
+                                #Restores original DB if something goes wrong
+                                shutil.copyfile('vgames.oops', 'vgames.db')
+                                messagebox.showwarning ("Restore", "Error restoring database!")
+                                self.main_window.update_game_list()
+                                self.main_window.update_systems_menu()
+
+                        os.remove('vgames.oops')
 
 class stats:
 
