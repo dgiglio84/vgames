@@ -70,6 +70,7 @@ def create_database():
         "Region"        INTEGER NOT NULL DEFAULT '',
 	"Progress"	INTEGER NOT NULL DEFAULT '',
 	"Playtime"	NUMERIC NOT NULL DEFAULT '',
+        "Date_Started"	TEXT NOT NULL DEFAULT '',
 	"Date_Completed"	TEXT NOT NULL DEFAULT '',
 	"Rating"	NUMERIC NOT NULL DEFAULT '',
 	"Notes"	TEXT NOT NULL DEFAULT '',
@@ -117,6 +118,10 @@ def create_database():
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Region NUMERIC NOT NULL DEFAULT ''")
         except:	
                 print ("Region column already exists.")
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Started TEXT NOT NULL DEFAULT ''")
+        except:	
+                print ("Date_Started column already exists.")
 
         #Creates default Systems (if they don't exist)
         DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
@@ -179,6 +184,7 @@ class main_window:
                 self.popup_stats.add_separator()
                 self.popup_stats.add_command(label="Progress", command=lambda: stats(self.system_menu_option.get()).Progress())
                 self.popup_stats.add_command(label="Highest Playtime", command=lambda: stats(self.system_menu_option.get()).Playtime())
+                self.popup_stats.add_command(label="Total Days", command=lambda: stats(self.system_menu_option.get()).Total_Days())
                 self.popup_stats.add_separator()
                 self.popup_stats.add_command(label="Top 10 Companies", command=lambda: stats(self.system_menu_option.get()).Top10Companies())
 
@@ -219,7 +225,6 @@ class main_window:
                 self.popup_tools = Menu(master, tearoff = 0)
                 self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
                 self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)
-
 
                 #Creates RIGHT CLICK pop-up menu
                 self.popup_right_click = Menu(master, tearoff = 0)
@@ -367,7 +372,7 @@ class main_window:
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
                 self.games_list = ttk.Treeview(self.FrameGames, height = 20)
-                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Region', 'Progress', 'Playtime', 'Date Completed', 'Rating')
+                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Region', 'Progress', 'Playtime', 'Date Started', 'Date Completed', 'Total Days', 'Rating')
 
                 self.games_list.column("#0", width=0, stretch=NO)
 
@@ -382,8 +387,10 @@ class main_window:
 
                 # 'Stats' columns
                 self.games_list.column("Progress",anchor=W,width=120)
-                self.games_list.column("Playtime",anchor=W,width=100)
+                self.games_list.column("Playtime",anchor=W,width=60)
+                self.games_list.column("Date Started",anchor=W,width=100)
                 self.games_list.column("Date Completed",anchor=W,width=100)
+                self.games_list.column("Total Days",anchor=W,width=70)
                 self.games_list.column("Rating",anchor=W,width=100)
 
                 self.games_list.heading("#0",text="",anchor=W)
@@ -396,7 +403,9 @@ class main_window:
                 self.games_list.heading("Region",text="Region",anchor=W, command=lambda: self.sort_column (self.games_list, "Region", False))
                 self.games_list.heading("Progress",text="Progress",anchor=W, command=lambda: self.sort_column (self.games_list, "Progress", False))
                 self.games_list.heading("Playtime",text="Playtime",anchor=W, command=lambda: self.sort_column (self.games_list, "Playtime", False))
+                self.games_list.heading("Date Started",text="Date Started",anchor=W, command=lambda: self.sort_column (self.games_list, "Date Started", False))
                 self.games_list.heading("Date Completed",text="Date Completed",anchor=W, command=lambda: self.sort_column (self.games_list, "Date Completed", False))
+                self.games_list.heading("Total Days",text="Total Days",anchor=W, command=lambda: self.sort_column (self.games_list, "Total Days", False))
                 self.games_list.heading("Rating",text="Rating",anchor=W, command=lambda: self.sort_column (self.games_list, "Rating", False))
              
                 self.games_list.grid(row=0, column=0)
@@ -599,26 +608,34 @@ class main_window:
                 if SearchString == "":
                         SearchString = "%"
 
-                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating
-                        FROM tbl_Games
-                        LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
-                        LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
-			LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
-                        WHERE (Title LIKE ? OR Company LIKE ? OR Genre LIKE ?) AND SystemName LIKE ? AND Progress LIKE ? AND Format LIKE ? AND Region LIKE ?
-                        ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format, Region))
+                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed, 
+                
+                CASE WHEN (Date_Started != "" and Date_Completed != "") THEN
+                        CAST((JulianDay(Date_Completed) - JulianDay(Date_Started)) As Integer) 
+                ELSE ""
+                END AS Total_Days,
+
+                Rating
+
+                FROM tbl_Games
+                LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
+                LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
+                LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
+                WHERE (Title LIKE ? OR Company LIKE ? OR Genre LIKE ?) AND SystemName LIKE ? AND Progress LIKE ? AND Format LIKE ? AND Region LIKE ?
+                ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format, Region))
                 
                 #Displays all games in Treeview. NOTE: The iid is set to the GameID in the DB.
                 gamecount = 0
                 for column in Records:
                         self.games_list.insert("", index='end',iid=column[0], text="",
-                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10], column[11]))
+                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10], column[11], column[12], column[13]))
                         gamecount += 1
 
                 #Sets Treeview columns based on "View" combo box
                 if View == "Game Info":
                         self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region")
                 if View == "Stats":
-                        self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Completed", "Rating")
+                        self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
 
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
@@ -678,7 +695,7 @@ class main_window:
                         WHERE GameID = ?""", (GameID,))  
                
                 #Duplicates game (leaves out 'Stats' fields)
-                database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
+                database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes)",
                         {
 
                         'SystemID': old_game[1],
@@ -690,6 +707,7 @@ class main_window:
                         'Region': old_game[7],
                         'Progress': "",                       
                         'Playtime': "",
+                        'Date_Started': "",
                         'Date_Completed': "",
                         'Rating': "",
                         'Notes': ""                                
@@ -946,22 +964,37 @@ class game_info_window:
                 self.txt_Playtime = Entry (self.framestats, fg = "black", bg = "white", width=18)
                 self.txt_Playtime.grid(row = 2, column= 1, sticky=W)
 
+                self.lbl_Date_Started= Label (self.framestats, text= "Date Started:", fg="white", bg="black")
+                self.lbl_Date_Started.grid(row = 3, column=0, sticky=E, padx = 5)
+                self.txt_Date_Started = DateEntry(self.framestats, date_pattern = 'yyyy-mm-dd', width= 15, background= "black", foreground= "white",bd=2)
+                self.txt_Date_Started.grid(row = 3, column= 1, sticky=W)
+                self.txt_Date_Started.delete (0, END)
+                self.txt_Date_Started.config(state='readonly')
+
                 self.lbl_Date_Completed= Label (self.framestats, text= "Date Completed:", fg="white", bg="black")
-                self.lbl_Date_Completed.grid(row = 3, column=0, sticky=E, padx = 5)
+                self.lbl_Date_Completed.grid(row = 4, column=0, sticky=E, padx = 5)
                 self.txt_Date_Completed = DateEntry(self.framestats, date_pattern = 'yyyy-mm-dd', width= 15, background= "black", foreground= "white",bd=2)
-                self.txt_Date_Completed.grid(row = 3, column= 1, sticky=W)
+                self.txt_Date_Completed.grid(row = 4, column= 1, sticky=W)
                 self.txt_Date_Completed.delete (0, END)
                 self.txt_Date_Completed.config(state='readonly')
 
                 self.lbl_Rating = Label (self.framestats, text= "Rating:", fg="white", bg="black")
-                self.lbl_Rating.grid(row = 4, column=0, sticky=E, padx = 5)
+                self.lbl_Rating.grid(row = 5, column=0, sticky=E, padx = 5)
                 self.ratings_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
                 self.txt_Rating = ttk.Combobox(self.framestats, value = self.ratings_list, width = 5)
-                self.txt_Rating.grid(row = 4, column= 1, sticky=W)
+                self.txt_Rating.grid(row = 5, column= 1, sticky=W)
 
-                #Bottom Spacer for the "Stats" frame
-                self.lbl_Space = Label (self.framestats, text= "", fg="white", bg="black")
-                self.lbl_Space.grid(row = 5, column=0, sticky=E, padx = 5)
+                #Button to clear the "Date Started" field
+                self.btn_clear_Date_Started = Button (
+                        self.framestats,
+                        text = "Clear",
+                        width = 5,
+                        height= 1,
+                        bg="grey",
+                        fg="white",
+                        command=self.clear_Date_Started
+                )
+                self.btn_clear_Date_Started.grid(row=3, column=2, padx=5)
 
                 #Button to clear the "Date Completed" field
                 self.btn_clear_Date_Completed = Button (
@@ -973,7 +1006,7 @@ class game_info_window:
                         fg="white",
                         command=self.clear_Date_Completed
                 )
-                self.btn_clear_Date_Completed.grid(row=3, column=2, padx=5)
+                self.btn_clear_Date_Completed.grid(row=4, column=2, padx=5)
 
                 self.lbl_Notes = Label (self.framemiscinfo, text= "Notes:", fg="white", bg="black")
                 self.lbl_Notes.grid(row = 8, column=0, sticky=E, padx = 5)
@@ -1041,7 +1074,7 @@ class game_info_window:
                         return
 
                 #Grabs current Treeview selection record data.
-                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Completed, Rating, tbl_Games.Notes 
+                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Started, Date_Completed, Rating, tbl_Games.Notes 
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -1060,13 +1093,18 @@ class game_info_window:
                 self.txt_Region.set(old_field[8])
                 self.txt_Playtime.insert(0, old_field[9])
 
+                #'Date_Started' field is temporary enabled to insert old field text. 
+                self.txt_Date_Started.config(state=NORMAL)
+                self.txt_Date_Started.insert(0, old_field[10])      
+                self.txt_Date_Started.config(state='readonly')
+
                 #'Date_Completed' field is temporary enabled to insert old field text. 
                 self.txt_Date_Completed.config(state=NORMAL)
-                self.txt_Date_Completed.insert(0, old_field[10])      
+                self.txt_Date_Completed.insert(0, old_field[11])      
                 self.txt_Date_Completed.config(state='readonly')
 
-                self.txt_Rating.set(old_field[11])
-                self.txt_Notes.insert(0, old_field[12])
+                self.txt_Rating.set(old_field[12])
+                self.txt_Notes.insert(0, old_field[13])
 
                 btn_update = Button(
                         self.framebuttons,
@@ -1139,7 +1177,12 @@ class game_info_window:
                         messagebox.showwarning ("Video Games Database", "System and Title must be filled out!")
                         self.game_info_window.focus_force()
                         return
-
+                #Checks if Date_Started is greater than Date_Completed
+                if (self.txt_Date_Started.get() != "" and self.txt_Date_Completed.get() != "") and (self.txt_Date_Started.get() > self.txt_Date_Completed.get()):
+                        messagebox.showwarning ("Video Games Database", "Date Started cannot be greated than Date Completed!")
+                        self.game_info_window.focus_force()
+                        return
+        
                 #Checks if System Name is in the tbl_System table. If it is not, it will prompt whether it should be added.
                 SystemName = (self.txt_system.get())
                 if SystemName not in self.systems_list:
@@ -1172,7 +1215,7 @@ class game_info_window:
                 #Creates a new record
                 if New:
 
-                        database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Completed, :Rating, :Notes)",
+                        database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes)",
                                 {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1183,6 +1226,7 @@ class game_info_window:
                                 'Region': self.txt_Region.get(),
                                 'Progress': self.txt_Progress.get(),
                                 'Playtime': self.txt_Playtime.get(),
+                                'Date_Started': self.txt_Date_Started.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
                                 'Rating': self.txt_Rating.get(),
                                 'Notes': self.txt_Notes.get()                                
@@ -1193,7 +1237,7 @@ class game_info_window:
                 #Updates record
                 else:
                         
-                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Region = :Region, Progress = :Progress, Playtime = :Playtime, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
+                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Region = :Region, Progress = :Progress, Playtime = :Playtime, Date_Started = :Date_Started, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
                         {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1205,6 +1249,7 @@ class game_info_window:
                                 'Notes': self.txt_Notes.get(),
                                 'Progress': self.txt_Progress.get(),
                                 'Playtime': self.txt_Playtime.get(),
+                                'Date_Started': self.txt_Date_Started.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
                                 'Rating': self.txt_Rating.get(),
                                 'GameID': GameID
@@ -1231,13 +1276,19 @@ class game_info_window:
                 if SaveAndNew:
                         game_info_window(self.main_window).new_game_window(self.main_window.system_menu_option.get(), self.main_window.FormatSelection.get())
 
-
         def search_web(self, SystemName, Title):
                 if SystemName == "" or Title == "":
                         messagebox.showwarning ("Search Web", "You must fill out both System and Title!")
                         return
                 
                 webbrowser.open("https://www.google.com/search?q=" + Title + " " + SystemName)
+
+        def clear_Date_Started(self):
+                
+                self.txt_Date_Started.config(state=NORMAL)
+                self.txt_Date_Started.delete (0, END)
+                self.btn_clear_Date_Started.focus_set()
+                self.txt_Date_Started.config(state='readonly')
 
         def clear_Date_Completed(self):
                 
@@ -2010,7 +2061,14 @@ class export:
         def __init__(self):
                 #Creates Panadas Dataframe with all records
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating, Notes
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed,
+                 
+                CASE WHEN (Date_Started != "" and Date_Completed != "") THEN
+                        CAST((JulianDay(Date_Completed) - JulianDay(Date_Started)) As Integer) 
+                ELSE ""
+                END AS Total_Days,  
+                   
+                Rating, Notes
                 FROM tbl_Games
                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -2101,7 +2159,14 @@ class stats:
                         
                 #Creates Pandas DataFrame from SQL query
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Completed, Rating
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed,
+                 
+                CASE WHEN (Date_Started != "" and Date_Completed != "") THEN
+                        CAST((JulianDay(Date_Completed) - JulianDay(Date_Started)) As Integer) 
+                ELSE ""
+                END AS Total_Days,
+
+                Rating
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
@@ -2141,7 +2206,27 @@ class stats:
                 plt.xlabel ("Hours")
                 plt.ylabel ("Game")
                 plt.show()
-                
+        
+        def Total_Days(self):
+                if self.SystemName == "%":
+                        Title = "Total Days - All Systems"
+                else:
+                        Title = "Total Days - " + self.SystemName
+                        
+                plt.figure(Title)
+                plt.get_current_fig_manager().window.state('zoomed')
+                              
+                self.df = self.df.astype(str).sort_values(by=['Total_Days'], ascending=True)
+                Games = self.df.Title.tail(5) + " (" + self.df.System.tail(5) + ")"
+                GamesSpaced = [ '\n'.join(wrap(Game, 10)) for Game in Games ]   
+                Total_Days = self.df.Total_Days.tail(5)
+        
+                plt.barh (GamesSpaced, [str(x) for x in Total_Days])
+                plt.title(Title)
+                plt.tick_params (labelsize = 8)
+                plt.xlabel ("Days")
+                plt.ylabel ("Game")
+                plt.show()
 
         def Genre(self):
                 if self.SystemName == "%":
