@@ -3,7 +3,7 @@
 *UPDATES*
 
 3-22-2023
-- Added a "Date Started" field. On the main window, the "Total Days" column will automatically caculate the difference between "Date Started" and "Date Completed."
+- Added a "Date Started" field. On the main window, the "Total Days" column will automatically calculate the difference between "Date Started" and "Date Completed."
 
 3-20-2023
 - Added a Backup/Restore feature. This can be found in <b>Tools > Backup/Restore Database</b>.
