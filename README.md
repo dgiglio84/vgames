@@ -1,9 +1,12 @@
-<b>NOTE: Please read the "Install.txt" file for installation instructions.</b>
+<b>NOTE: Please read the <i>Install.txt</i> file for installation instructions.</b>
 
 *UPDATES*
 
+3-29-2023
+- Fixed a bug in the <b>Highest Playtime</b> and <b>Total Games</b> graphs.
+
 3-22-2023
-- Added a "Date Started" field. On the main window, the "Total Days" column will automatically calculate the difference between "Date Started" and "Date Completed."
+- Added a <b>Date Started</b> field. On the main window, the <b>Total Days</b> column will automatically calculate the difference between <b>Date Started</b> and <b>Date Completed</b>.
 
 3-20-2023
 - Added a Backup/Restore feature. This can be found in <b>Tools > Backup/Restore Database</b>.
