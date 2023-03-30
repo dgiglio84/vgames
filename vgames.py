@@ -840,7 +840,7 @@ class main_window_popup_menu:
                 def Stats(self):
                         #Displays stats popup menu
                         x = self.main_window.btn_stats.winfo_rootx()
-                        y = self.main_window.btn_stats.winfo_rooty() - 75
+                        y = self.main_window.btn_stats.winfo_rooty() - 5
                         self.main_window.popup_stats.tk_popup(x, y, 0)
                 
                 def Tools(self):
@@ -2159,19 +2159,22 @@ class stats:
                         
                 #Creates Pandas DataFrame from SQL query
                 conn = database().open()
-                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed,
+                self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Date_Started, Date_Completed, Rating,
+                
+                CASE WHEN Playtime != "" THEN Playtime
+                ELSE 0
+                END AS Playtime,               
                  
                 CASE WHEN (Date_Started != "" and Date_Completed != "") THEN
                         CAST((JulianDay(Date_Completed) - JulianDay(Date_Started)) As Integer) 
-                ELSE ""
-                END AS Total_Days,
+                ELSE 0
+                END AS Total_Days
 
-                Rating
-                                FROM tbl_Games
-                                LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
-                                LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
-                                LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
-                                WHERE SystemName LIKE '%""" + self.SystemName + "%'", conn)
+                FROM tbl_Games
+                LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
+                LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
+                LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
+                WHERE SystemName LIKE '%""" + self.SystemName + "%'", conn)
                 database().close()
     
         def Progress(self):
@@ -2185,7 +2188,6 @@ class stats:
                 plt.title(Title)
                 plt.show()
 
-
         def Playtime(self):
                 if self.SystemName == "%":
                         Title = "Highest Playtime - All Systems"
@@ -2195,12 +2197,16 @@ class stats:
                 plt.figure(Title)
                 plt.get_current_fig_manager().window.state('zoomed')
                               
-                self.df = self.df.astype(str).sort_values(by=['Playtime'], ascending=True)
+                self.df = self.df.sort_values(by=['Playtime'], ascending=True)
+
+                #Removes rows where Playtime equals 0
+                self.df = self.df[self.df['Playtime'] > 0]
+
                 Games = self.df.Title.tail(5) + " (" + self.df.System.tail(5) + ")"
                 GamesSpaced = [ '\n'.join(wrap(Game, 10)) for Game in Games ]   
                 Playtime = self.df.Playtime.tail(5)
         
-                plt.barh (GamesSpaced, [int(x) for x in Playtime])
+                plt.barh (GamesSpaced, Playtime)
                 plt.title(Title)
                 plt.tick_params (labelsize = 8)
                 plt.xlabel ("Hours")
@@ -2216,12 +2222,16 @@ class stats:
                 plt.figure(Title)
                 plt.get_current_fig_manager().window.state('zoomed')
                               
-                self.df = self.df.astype(str).sort_values(by=['Total_Days'], ascending=True)
+                self.df = self.df.sort_values(by=['Total_Days'], ascending=True)
+
+                #Removes rows where Total Days equals 0
+                self.df = self.df[self.df['Total_Days'] > 0]
+
                 Games = self.df.Title.tail(5) + " (" + self.df.System.tail(5) + ")"
                 GamesSpaced = [ '\n'.join(wrap(Game, 10)) for Game in Games ]   
                 Total_Days = self.df.Total_Days.tail(5)
-        
-                plt.barh (GamesSpaced, [str(x) for x in Total_Days])
+
+                plt.barh (GamesSpaced, Total_Days)
                 plt.title(Title)
                 plt.tick_params (labelsize = 8)
                 plt.xlabel ("Days")
