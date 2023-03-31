@@ -753,6 +753,11 @@ class main_window:
                 if Field == "Rating":
                         database().execute("UPDATE tbl_Games SET Rating = ? WHERE GameID = ?", (Value, GameID,))
 
+                #Updates Timestamp_Updated field
+                now = datetime.datetime.now()
+                TimeStamp_Updated = now.strftime("%Y-%m-%d %H:%M:%S")
+                database().execute("UPDATE tbl_Games SET TimeStamp_Updated = ? WHERE GameID = ?", (TimeStamp_Updated, GameID,))
+
                 #Updates variable to indicate changes have been made
                 self.changes = True
 
@@ -1036,7 +1041,6 @@ class game_info_window:
                 self.lbl_Notes.grid(row = 8, column=0, sticky=E, padx = 5)
                 self.txt_Notes = Entry (self.framemiscinfo, fg = "black", bg = "white", width=50)
                 self.txt_Notes.grid(row = 8, column= 1)
-
    
         def new_game_window(self, SystemName, Format):
 
