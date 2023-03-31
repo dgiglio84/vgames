@@ -2,6 +2,9 @@
 
 *UPDATES*
 
+3-30-2023
+- Added timestamps when games get <b>created</b> or <b>updated</b>.
+
 3-29-2023
 - Fixed a bug in the <b>Highest Playtime</b> and <b>Total Games</b> graphs.
 
