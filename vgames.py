@@ -74,6 +74,8 @@ def create_database():
 	"Date_Completed"	TEXT NOT NULL DEFAULT '',
 	"Rating"	NUMERIC NOT NULL DEFAULT '',
 	"Notes"	TEXT NOT NULL DEFAULT '',
+        "TimeStamp_Created"	TEXT DEFAULT '',
+	"TimeStamp_Updated"	TEXT DEFAULT '',
 	PRIMARY KEY("GameID"),
 	FOREIGN KEY("SystemID") REFERENCES "tbl_System"("SystemID"),
 	FOREIGN KEY("CompanyID") REFERENCES "tbl_Company"("CompanyID"),
@@ -122,7 +124,15 @@ def create_database():
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Started TEXT NOT NULL DEFAULT ''")
         except:	
                 print ("Date_Started column already exists.")
-
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Created TEXT DEFAULT ''")
+        except:	
+                print ("TimeStamp_Created column already exists.")
+        try:
+                database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Updated TEXT DEFAULT ''")
+        except:	
+                print ("TimeStamp_Updated column already exists.")
+        
         #Creates default Systems (if they don't exist)
         DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
         DBSystemsList = []
@@ -695,7 +705,10 @@ class main_window:
                         WHERE GameID = ?""", (GameID,))  
                
                 #Duplicates game (leaves out 'Stats' fields)
-                database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes)",
+                now = datetime.datetime.now()
+                TimeStamp_Created = now.strftime("%Y-%m-%d %H:%M:%S")
+
+                database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes, TimeStamp_Created, TimeStamp_Updated) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes, :TimeStamp_Created, :TimeStamp_Updated)",
                         {
 
                         'SystemID': old_game[1],
@@ -710,7 +723,9 @@ class main_window:
                         'Date_Started': "",
                         'Date_Completed': "",
                         'Rating': "",
-                        'Notes': ""                                
+                        'Notes': "",
+                        'TimeStamp_Created': TimeStamp_Created,
+                        'TimeStamp_Updated': ""                              
                         })
                 
                 messagebox.showwarning ("Duplicate Game", old_game[2] + " duplicated!")
@@ -857,7 +872,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("725x425")
+                self.game_info_window.geometry("725x450")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
                 self.game_info_window.bind('<Escape>', lambda event: self.game_info_window.destroy())
@@ -887,7 +902,16 @@ class game_info_window:
                 self.framemiscinfo.pack (side=TOP, padx=5, pady=5)
 
                 self.framebuttons=LabelFrame(self.game_info_window,  padx=5, pady=5, fg="yellow", bg="black")
-                self.framebuttons.pack (side=BOTTOM, padx=5, pady=5)
+                self.framebuttons.pack (side=TOP, padx=5, pady=5)
+                
+                self.framestatusbar = LabelFrame(self.game_info_window, relief=SUNKEN, bg="black", fg="yellow")
+                self.framestatusbar.pack (side=BOTTOM, fill='both')
+
+                self.lbl_TimeStampCreated = Label(self.framestatusbar, bg="black", fg="yellow")
+                self.lbl_TimeStampCreated.pack (side=LEFT)
+            
+                self.lbl_TimeStampUpdated = Label(self.framestatusbar, bg="black", fg="yellow", justify=RIGHT)
+                self.lbl_TimeStampUpdated.pack (side=RIGHT)
                 
                 self.system = database().fetchall("SELECT SystemName from tbl_System ORDER BY SystemName")
                 self.systems_list = []
@@ -1012,6 +1036,7 @@ class game_info_window:
                 self.lbl_Notes.grid(row = 8, column=0, sticky=E, padx = 5)
                 self.txt_Notes = Entry (self.framemiscinfo, fg = "black", bg = "white", width=50)
                 self.txt_Notes.grid(row = 8, column= 1)
+
    
         def new_game_window(self, SystemName, Format):
 
@@ -1074,7 +1099,7 @@ class game_info_window:
                         return
 
                 #Grabs current Treeview selection record data.
-                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Started, Date_Completed, Rating, tbl_Games.Notes 
+                old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Started, Date_Completed, Rating, tbl_Games.Notes, TimeStamp_Created, TimeStamp_Updated
                                 FROM tbl_Games
                                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
@@ -1105,6 +1130,11 @@ class game_info_window:
 
                 self.txt_Rating.set(old_field[12])
                 self.txt_Notes.insert(0, old_field[13])
+
+                if old_field[14] != "":
+                        self.lbl_TimeStampCreated.config(text="Created: " + old_field[14])
+                if old_field[15] != "":
+                        self.lbl_TimeStampUpdated.config(text="Updated: " + old_field[15])
 
                 btn_update = Button(
                         self.framebuttons,
@@ -1215,7 +1245,10 @@ class game_info_window:
                 #Creates a new record
                 if New:
 
-                        database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes)",
+                        now = datetime.datetime.now()
+                        TimeStamp_Created = now.strftime("%Y-%m-%d %H:%M:%S")
+
+                        database().execute("INSERT INTO tbl_Games (GameID, SystemID, Title, Year, CompanyID, GenreID, Format, Region, Progress, Playtime, Date_Started, Date_Completed, Rating, Notes, TimeStamp_Created) VALUES (NULL, :SystemID, :Title, :Year, :CompanyID, :GenreID, :Format, :Region, :Progress, :Playtime, :Date_Started, :Date_Completed, :Rating, :Notes, :TimeStamp_Created)",
                                 {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1229,7 +1262,8 @@ class game_info_window:
                                 'Date_Started': self.txt_Date_Started.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
                                 'Rating': self.txt_Rating.get(),
-                                'Notes': self.txt_Notes.get()                                
+                                'Notes': self.txt_Notes.get(),
+                                'TimeStamp_Created': TimeStamp_Created                            
                                 })
                                         
                         messagebox.showinfo ("New Game", "Game Saved!")
@@ -1237,7 +1271,10 @@ class game_info_window:
                 #Updates record
                 else:
                         
-                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Region = :Region, Progress = :Progress, Playtime = :Playtime, Date_Started = :Date_Started, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes WHERE GameID = :GameID",
+                        now = datetime.datetime.now()
+                        TimeStamp_Updated = now.strftime("%Y-%m-%d %H:%M:%S")
+
+                        database().execute("UPDATE tbl_Games SET SystemID = :SystemID, Title = :Title, Year = :Year, CompanyID = :Company, GenreID = :GenreID, Format = :Format, Region = :Region, Progress = :Progress, Playtime = :Playtime, Date_Started = :Date_Started, Date_Completed = :Date_Completed, Rating = :Rating, Notes = :Notes, TimeStamp_Updated = :TimeStamp_Updated WHERE GameID = :GameID",
                         {
                                 'SystemID': SystemID[0],
                                 'Title': self.txt_title.get(),
@@ -1252,6 +1289,7 @@ class game_info_window:
                                 'Date_Started': self.txt_Date_Started.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
                                 'Rating': self.txt_Rating.get(),
+                                'TimeStamp_Updated': TimeStamp_Updated,
                                 'GameID': GameID
                         })
 
