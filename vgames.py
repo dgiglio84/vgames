@@ -77,7 +77,7 @@ def create_defaults():
                 for row in DBGenres:
                         DBGenresList.append(row[0])
 
-                DefaultGenres = ['', 'Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
+                DefaultGenres = ['Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
                 for Genre in DefaultGenres:
                         if Genre not in DBGenresList:
                                 database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, ?)", (Genre,))
