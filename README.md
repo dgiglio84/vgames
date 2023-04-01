@@ -6,7 +6,7 @@
 - The default <b>Systems</b> and <b>Genres</b> lists are now optional. They can be added via the <i>Tools</i> menu, or when the database is opened for the first time. 
 
 3-30-2023
-- Added <b>created</b> and <b>updated</b> timestamps. They are displayed on the status bar of the Game Info window.
+- Added <b>Created</b> and <b>Updated</b> timestamps. They are displayed on the status bar of the Game Info window.
 
 3-29-2023
 - Fixed a bug in the <b>Highest Playtime</b> and <b>Total Games</b> graphs.
