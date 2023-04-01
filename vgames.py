@@ -912,12 +912,6 @@ class game_info_window:
                 self.framestatusbar = LabelFrame(self.game_info_window, relief=SUNKEN, bg="black", fg="yellow")
                 self.framestatusbar.pack (side=BOTTOM, fill='both')
 
-                self.lbl_TimeStampCreated = Label(self.framestatusbar, bg="black", fg="yellow")
-                self.lbl_TimeStampCreated.pack (side=LEFT)
-            
-                self.lbl_TimeStampUpdated = Label(self.framestatusbar, bg="black", fg="yellow", justify=RIGHT)
-                self.lbl_TimeStampUpdated.pack (side=RIGHT)
-                
                 self.system = database().fetchall("SELECT SystemName from tbl_System ORDER BY SystemName")
                 self.systems_list = []
                 for row in self.system:
@@ -1102,6 +1096,18 @@ class game_info_window:
                         messagebox.showwarning ("View/Edit Game", "No game selected!")
                         return
 
+                self.lbl_TimeStampCreated = Label(self.framestatusbar, text = "Created:", bg="black", fg="yellow")
+                self.lbl_TimeStampCreated.pack (side=LEFT)
+
+                self.txt_TimeStampCreated = Label(self.framestatusbar, bg="black", fg="white")
+                self.txt_TimeStampCreated.pack (side=LEFT)
+            
+                self.txt_TimeStampUpdated = Label(self.framestatusbar, bg="black", fg="white", justify=RIGHT)
+                self.txt_TimeStampUpdated.pack (side=RIGHT)
+                
+                self.lbl_TimeStampUpdated = Label(self.framestatusbar, text = "Updated:", bg="black", fg="yellow", justify=RIGHT)
+                self.lbl_TimeStampUpdated.pack (side=RIGHT)
+
                 #Grabs current Treeview selection record data.
                 old_field = database().fetchone ("""SELECT tbl_Games.GameID, tbl_System.SystemName, Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName, Progress, Format, Region, Playtime, Date_Started, Date_Completed, Rating, tbl_Games.Notes, TimeStamp_Created, TimeStamp_Updated
                                 FROM tbl_Games
@@ -1136,9 +1142,13 @@ class game_info_window:
                 self.txt_Notes.insert(0, old_field[13])
 
                 if old_field[14] != "":
-                        self.lbl_TimeStampCreated.config(text="Created: " + old_field[14])
+                        self.txt_TimeStampCreated.config(text=old_field[14])
+                elif old_field[14] == "":
+                        self.txt_TimeStampCreated.config(text="N/A")
                 if old_field[15] != "":
-                        self.lbl_TimeStampUpdated.config(text="Updated: " + old_field[15])
+                        self.txt_TimeStampUpdated.config(text=old_field[15])
+                elif old_field[15] == "":
+                        self.txt_TimeStampUpdated.config(text="N/A")
 
                 btn_update = Button(
                         self.framebuttons,
