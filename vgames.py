@@ -56,7 +56,40 @@ class database:
                 self.conn.commit()
                 self.conn.close()
 
+def create_defaults():
+
+        DefaultResponse = messagebox.askyesno ("Video Games Database", "Would you like to import the default Systems and Genres lists?")
+        if DefaultResponse:
+                #Creates default Systems (if they don't exist)
+                DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
+                DBSystemsList = []
+                for row in DBSystems:
+                        DBSystemsList.append(row[0])
+
+                DefaultSystems = ['Atari 2600', 'Colecovision', 'Dreamcast', 'Famicom', 'Game Boy', 'Game Boy Advance', 'Game Boy Color', 'Gamecube', 'Game Gear', 'Genesis', 'NES', 'Nintendo 64', 'Nintendo 3DS', 'Nintendo DS', 'Nintendo Switch', 'PC', 'PS1', 'PS2', 'PS3', 'PS4', 'SNES', 'Super Famicom', 'Wii', 'Wii U', 'Xbox 360', 'Xbox']
+                for System in DefaultSystems:
+                        if System not in DBSystemsList:
+                                database().execute ("INSERT INTO tbl_System (SystemID, SystemName) VALUES (null, ?)", (System,))
+
+                #Creates default Genres (if they don't exist)
+                DBGenres = database().fetchall("SELECT GenreName FROM tbl_Genre")
+                DBGenresList = []
+                for row in DBGenres:
+                        DBGenresList.append(row[0])
+
+                DefaultGenres = ['', 'Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
+                for Genre in DefaultGenres:
+                        if Genre not in DBGenresList:
+                                database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, ?)", (Genre,))
+                
+                messagebox.showinfo ("Video Games Database", "Default Systems and Genres Lists imported!")
+
 def create_database():
+
+        #sets variable of DB is run for the first time
+        FirstRun = False
+        if os.path.exists('vgames.db') == False:
+                FirstRun = True
 
         #Creates tables
         database().execute("""CREATE TABLE IF NOT EXISTS "tbl_Games" (
@@ -133,27 +166,8 @@ def create_database():
         except:	
                 print ("TimeStamp_Updated column already exists.")
         
-        #Creates default Systems (if they don't exist)
-        DBSystems = database().fetchall("SELECT SystemName FROM tbl_System")
-        DBSystemsList = []
-        for row in DBSystems:
-                DBSystemsList.append(row[0])
-
-        DefaultSystems = ['Atari 2600', 'Colecovision', 'Dreamcast', 'Famicom', 'Game Boy', 'Game Boy Advance', 'Game Boy Color', 'Gamecube', 'Game Gear', 'Genesis', 'NES', 'Nintendo 64', 'Nintendo 3DS', 'Nintendo DS', 'Nintendo Switch', 'PC', 'PS1', 'PS2', 'PS3', 'PS4', 'SNES', 'Super Famicom', 'Wii', 'Wii U', 'Xbox 360', 'Xbox']
-        for System in DefaultSystems:
-                if System not in DBSystemsList:
-                        database().execute ("INSERT INTO tbl_System (SystemID, SystemName) VALUES (null, ?)", (System,))
-
-        #Creates default Genres (if they don't exist)
-        DBGenres = database().fetchall("SELECT GenreName FROM tbl_Genre")
-        DBGenresList = []
-        for row in DBGenres:
-                DBGenresList.append(row[0])
-
-        DefaultGenres = ['', 'Action', 'Adventure', 'Arcade', 'Beat-Em-Up', 'Board', 'Card', 'Compilation', 'Educational', 'Fighting', 'First Person Shooter', 'Metroidvania', 'Other', 'Platformer', 'Puzzle', 'Roguelike', 'RPG', 'Racing', 'Shooter', 'Simulation', 'Sports']
-        for Genre in DefaultGenres:
-                if Genre not in DBGenresList:
-                        database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, ?)", (Genre,))
+        if FirstRun:
+                create_defaults()
 
 create_database()
 
@@ -233,8 +247,9 @@ class main_window:
 
                 #Creates TOOLS pop-up menu
                 self.popup_tools = Menu(master, tearoff = 0)
+                self.popup_tools.add_command(label = "Import Default Systems and Genres", command=lambda:[create_defaults(),self.update_game_list(), self.update_systems_menu()])
                 self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
-                self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)
+                self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)                
 
                 #Creates RIGHT CLICK pop-up menu
                 self.popup_right_click = Menu(master, tearoff = 0)
@@ -432,7 +447,6 @@ class main_window:
 
                 #Imports filters and window size from "vgames.ini" file
                 if os.path.exists('vgames.ini'):  
-                        
                         try:
                                 config = configparser.ConfigParser()
                                 config.read('vgames.ini')
