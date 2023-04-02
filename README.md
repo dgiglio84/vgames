@@ -2,6 +2,9 @@
 
 <b>UPDATES</b>
 
+4-2-2023
+- Added an <b>Edit Lists</b> window. This will allow you to rename saved System, Genre, and Company fields. You can find it by clicking on <i>Tools > Lists> Edit Lists<i>.
+
 4-1-2023
 - The default <b>Systems</b> and <b>Genres</b> lists are now optional. They can be added via the <i>Tools</i> menu, or when the database is opened for the first time. 
 
