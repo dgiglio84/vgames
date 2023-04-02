@@ -245,11 +245,16 @@ class main_window:
                 self.popup_backup.add_separator()
                 self.popup_backup.add_command(label = "Restore Auto-Backup", command=lambda: backup(self).restore_autobackup())
 
+                #Creates LISTS pop-up menu
+                self.popup_lists = Menu(master, tearoff = 0)
+                self.popup_lists.add_command(label = "Edit Lists", command=lambda: edit_lists_window(self))
+                self.popup_lists.add_command(label = "Import Default System/Genre Lists", command=lambda:[create_defaults(),self.update_game_list(), self.update_systems_menu()])
+
                 #Creates TOOLS pop-up menu
                 self.popup_tools = Menu(master, tearoff = 0)
-                self.popup_tools.add_command(label = "Import Default Systems and Genres", command=lambda:[create_defaults(),self.update_game_list(), self.update_systems_menu()])
                 self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
                 self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)                
+                self.popup_tools.add_cascade(label = "Lists", menu=self.popup_lists)
 
                 #Creates RIGHT CLICK pop-up menu
                 self.popup_right_click = Menu(master, tearoff = 0)
@@ -473,6 +478,8 @@ class main_window:
                 #Initial update of the Treeview Games list
                 self.update_game_list()
 
+        
+
                 #Adds scrollbar to Treeview Games list
                 self.games_list_scrollbar = ttk.Scrollbar(self.FrameGames, orient=VERTICAL, command=self.games_list.yview)
                 self.games_list.configure(yscroll=self.games_list_scrollbar.set)
@@ -664,7 +671,6 @@ class main_window:
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
 
-                
         def update_game_count(self, gamecount):
                 TotalGames = database().fetchone("SELECT COUNT(GameID) from tbl_Games")
 
@@ -959,7 +965,7 @@ class game_info_window:
                 self.lbl_Company = Label (self.framegameinfo, text= "Company:", fg="white", bg="black")
                 self.lbl_Company.grid(row = 2, column=0, sticky=E, padx = 5)
                 #Creates Company List for Combo Box
-                self.company = database().fetchall("SELECT CompanyName from tbl_Company ORDER BY CompanyName")
+                self.company = database().fetchall("SELECT CompanyName from tbl_Company WHERE CompanyName != '' ORDER BY CompanyName")
                 self.company_list = []
                 for row in self.company:
                         self.company_list.append(row[0])
@@ -970,7 +976,7 @@ class game_info_window:
                 self.lbl_Genre = Label (self.framegameinfo, text= "Genre:", fg="white", bg="black")
                 self.lbl_Genre.grid(row = 3, column=0, sticky=E, padx = 5)
                 #Creates Genre List for Combo Box
-                self.genre = database().fetchall("SELECT GenreName from tbl_Genre ORDER BY GenreName")
+                self.genre = database().fetchall("SELECT GenreName from tbl_Genre WHERE GenreName != '' ORDER BY GenreName")
                 self.genres_list = []
                 for row in self.genre:
                         self.genres_list.append(row[0])
@@ -1252,18 +1258,21 @@ class game_info_window:
                 #Converts System field to SystemID (from tbl_System)
                 SystemID = database().fetchone ("SELECT SystemID FROM tbl_System WHERE SystemName = ?", (SystemName,))   
                 
-                #Checks if Genre Name is in the tbl_Genre table. If it is not, it will prompt whether it should be added.
                 GenreName = (self.txt_Genre.get())
-                if GenreName not in self.genres_list:
+                #If Genre field is blank, it will automatically create a blank record on tbl_Genre
+                if GenreName == "":
+                        database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, '')")
+                #Checks if Genre name is in the tbl_Genre table. If not, it will be added.
+                if GenreName not in self.genres_list and GenreName != "":
                         GenreResponse = messagebox.askyesno ("Warning", "You are about to create a new Genre: '" + GenreName +"'\nAre you sure you want to continue?")
                         if GenreResponse == False:
                                 self.game_info_window.focus_force()
                                 return
                         database().execute ("INSERT INTO tbl_Genre (GenreID, GenreName) VALUES (null, ?)", (GenreName,))
-                #Converts Genre field to GenreID (from tbl_Genre)
-                GenreID = database().fetchone ("SELECT GenreID FROM tbl_Genre WHERE GenreName = ?", (GenreName,))        
+                #Converts Genre field to GenreID (from tbl_Genre)    
+                GenreID = database().fetchone ("SELECT GenreID FROM tbl_Genre WHERE GenreName = ?", (GenreName,))
 
-                #Checks if Company name is in the tbl_Compmany table. If not, it will be added.
+                #Checks if Company name is in the tbl_Company table. If not, it will be added.
                 CompanyName = (self.txt_Company.get())
                 if CompanyName not in self.company_list:
                         database().execute ("INSERT INTO tbl_Company (CompanyID, CompanyName) VALUES (null, ?)", (CompanyName,))
@@ -1686,6 +1695,111 @@ class random_game_window:
                 self.lbl_title.config (text= Rand_Game[0])
                 self.lbl_system.config (text= Rand_Game[1])
 
+class edit_lists_window:
+        
+        def __init__(self, main_window):
+                
+                self.main_window = main_window
+
+                self.edit_lists_window=Toplevel()
+                self.edit_lists_window.geometry("350x175")
+                self.edit_lists_window.title("Edit Lists")
+                self.edit_lists_window.iconbitmap("vgames.ico")
+                self.edit_lists_window.configure(bg='#404040')
+
+                self.frametop=LabelFrame(self.edit_lists_window, padx=10, pady=10, bg = 'black')
+                self.frametop.pack (side= TOP, padx=5, pady=5)
+                self.framebottom=LabelFrame(self.edit_lists_window, bg = 'black', padx = 5, pady =5)
+                self.framebottom.pack (side=BOTTOM, padx=5, pady =5)
+
+                self.lbl_FieldSelection = Label (self.frametop, text= "Field:", fg="white", bg="black")
+                self.lbl_FieldSelection.grid (row=0, column=0, sticky=E)
+                values = ['System', 'Genre', 'Company']
+                self.txt_FieldSelection = StringVar()
+                self.txt_FieldSelection = ttk.Combobox(self.frametop, values = values, state="readonly", width=10)
+                self.txt_FieldSelection.bind ('<<ComboboxSelected>>', lambda event: self.update_list())
+                self.txt_FieldSelection.set("")
+                self.txt_FieldSelection.grid(row=0, column=1, sticky=W)
+
+                self.lbl_FieldList = Label (self.frametop, text= "Select Item:", fg="white", bg="black")
+                self.lbl_FieldList.grid (row=1, column=0, sticky=E)
+                self.txt_FieldList = StringVar()
+                self.txt_FieldList = ttk.Combobox(self.frametop, state="readonly", width=30)
+                self.txt_FieldList.grid(row=1, column=1, sticky=W)
+
+                self.lbl_NewName = Label (self.frametop, text= "New Name:", fg="white", bg="black")
+                self.lbl_NewName.grid(row = 2, column=0, sticky=E, padx = 5)
+                self.txt_NewName = Entry (self.frametop, fg = "black", bg = "white", width=32)
+                self.txt_NewName.grid(row = 2, column= 1, sticky=W)
+
+                self.btn_save = Button(
+                self.framebottom,
+                text = "Save",
+                width = 15,
+                height= 2,
+                bg="green",
+                fg="white",
+                command=self.save
+
+                ) 
+                self.btn_save.grid(row=0, column=0, padx=5, pady=5)
+
+                self.btn_cancel = Button(
+                self.framebottom,
+                text = "Cancel",
+                width = 15,
+                height= 2,
+                bg="red",
+                fg="white",
+                command=self.edit_lists_window.destroy
+
+                ) 
+                self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
+        
+                self.edit_lists_window.mainloop()
+
+        def update_list(self):
+                
+                self.txt_FieldList.set("")
+                self.txt_FieldList.focus()
+                self.txt_NewName.delete(0, END)
+
+                #Grabs current items in the selected field sets SQL update command (for the 'save' function below)
+                if self.txt_FieldSelection.get() == "System":
+                        list = database().fetchall("SELECT SystemName from tbl_System WHERE SystemName != '' ORDER BY SystemName")
+                        self.sql_update_command = "UPDATE tbl_System SET SystemName = ? WHERE SystemName = ?"
+                if self.txt_FieldSelection.get() == "Genre":
+                        list = database().fetchall("SELECT GenreName from tbl_Genre WHERE GenreName != '' ORDER BY GenreName")
+                        self.sql_update_command = "UPDATE tbl_Genre SET GenreName = ? WHERE GenreName = ?"
+                if self.txt_FieldSelection.get() == "Company":
+                        list = database().fetchall("SELECT CompanyName from tbl_Company WHERE CompanyName != '' ORDER BY CompanyName")
+                        self.sql_update_command = "UPDATE tbl_Company SET CompanyName = ? WHERE CompanyName = ?"
+
+                #Builds drop down list
+                values = []
+                for row in list:
+                        values.append(row[0])
+                self.txt_FieldList.config(values = values)
+
+        def save(self):
+                
+                if self.txt_FieldSelection.get() == "" or self.txt_FieldList.get() == "" or self.txt_NewName.get() == "":
+                        messagebox.showwarning ("Edit Lists", "Please fill out all fields!")
+                        self.edit_lists_window.focus()
+                        return
+
+                msgbox_text = "Are you sure you want update '" + self.txt_FieldList.get() + "' to '" + self.txt_NewName.get() + "'?"
+
+                response = messagebox.askyesno (self.txt_FieldSelection.get(), msgbox_text, default='no')
+                if response:
+                        database().execute(self.sql_update_command, (self.txt_NewName.get(), self.txt_FieldList.get(),))
+                        messagebox.showwarning ("Edit Lists", "Successfully updated!")
+                        self.edit_lists_window.destroy
+                        self.main_window.update_game_list()
+                        self.main_window.update_systems_menu()
+                else:
+                        self.edit_lists_window.focus()
+
 class sql_query_window:
         
         def __init__(self, main_window):
@@ -1731,6 +1845,8 @@ class sql_query_window:
 
                 ) 
                 self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
+
+                self.sql_query_window.mainloop()
 
         def execute(self):
 
@@ -2414,5 +2530,6 @@ class stats:
                 
 root = Tk()
 app = main_window(root)
+
 
 root.mainloop()
