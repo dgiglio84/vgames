@@ -10,7 +10,7 @@ from tkinter import *
 from tkinter import messagebox, ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkcalendar import DateEntry
-from ttkwidgets.autocomplete import AutocompleteCombobox
+from ttkwidgets.autocomplete import AutocompleteCombobox, AutocompleteEntryListbox
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -463,7 +463,7 @@ class main_window:
                                 View = config.get('FILTERS', 'View')
                                 SearchString = config.get ('FILTERS', 'SearchString')
                                 State = config.get ('WINDOW', 'State')
-
+                                
                                 self.system_menu_option.set(SystemName)
                                 self.ProgressSelection.set(Progress)
                                 self.FormatSelection.set(Format)
@@ -1436,8 +1436,8 @@ class wish_list_window:
                 self.wish_list.column("Title",anchor=W,width=350)
                 
                 self.wish_list.heading("#0",text="",anchor=W)
-                self.wish_list.heading("System",text="System",anchor=W, command=lambda: self.sort_column (self.games_list, "System", False))
-                self.wish_list.heading("Title",text="Title",anchor=W, command=lambda: self.sort_column (self.games_list, "Title", False))
+                self.wish_list.heading("System",text="System",anchor=W, command=lambda: self.sort_column (self.wish_list, "System", False))
+                self.wish_list.heading("Title",text="Title",anchor=W, command=lambda: self.sort_column (self.wish_list, "Title", False))
 
                 self.wish_list.grid(row=0, column=0)
 
@@ -1620,6 +1620,20 @@ class wish_list_window:
         
                 if opengsheetprompt == True:
                         webbrowser.open("https://docs.google.com/spreadsheets/u/0/")
+        
+        def sort_column(self, tview, column, reverse):
+                                               
+                #Edited from: https://stackoverflow.com/questions/1966929/tk-treeview-column-sort
+
+                l = [(tview.set(k, column), k) for k in tview.get_children('')]
+                l.sort(reverse=reverse)
+
+                #Rearrange items in sorted positions
+                for index, (val, k) in enumerate(l):
+                        tview.move(k, '', index)
+
+                #Reverse sort next time
+                tview.heading(column, command=lambda: self.sort_column(tview, column, not reverse))
                         
 class random_game_window:
 
