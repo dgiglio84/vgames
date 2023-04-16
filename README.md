@@ -2,6 +2,10 @@
 
 <b>UPDATES</b>
 
+4-16-2023
+- On the main window, the <b>System</b> column will hide when a specific system is selected.
+- Fixed a bug with sorting columns on the Wish List window.
+
 4-2-2023
 - Added an <b>Edit Lists</b> window. This will allow you to rename System, Genre, and Company fields. You can find it by clicking on <i>Tools > Lists> Edit Lists</i>.
 
