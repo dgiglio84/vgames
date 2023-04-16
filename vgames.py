@@ -478,8 +478,6 @@ class main_window:
                 #Initial update of the Treeview Games list
                 self.update_game_list()
 
-        
-
                 #Adds scrollbar to Treeview Games list
                 self.games_list_scrollbar = ttk.Scrollbar(self.FrameGames, orient=VERTICAL, command=self.games_list.yview)
                 self.games_list.configure(yscroll=self.games_list_scrollbar.set)
@@ -664,9 +662,15 @@ class main_window:
 
                 #Sets Treeview columns based on "View" combo box
                 if View == "Game Info":
-                        self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region")
+                        if SystemName != "%":
+                                self.games_list["displaycolumns"]=("Title", "Year", "Company", "Genre", "Format", "Region")
+                        else:
+                                self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region")
                 if View == "Stats":
-                        self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
+                        if SystemName != "%":
+                                self.games_list["displaycolumns"]=("Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
+                        else:
+                                self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
 
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
