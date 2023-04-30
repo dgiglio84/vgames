@@ -235,8 +235,8 @@ class main_window:
 
                 #Creates EXPORT pop-up menu
                 self.popup_export = Menu(master, tearoff = 0)
-                self.popup_export.add_command(label = "CSV", command=lambda: export().csv())
-                self.popup_export.add_command(label = "Google Sheets", command=lambda: export().gsheets())
+                self.popup_export.add_command(label = "CSV", command=lambda: export(self).csv())
+                self.popup_export.add_command(label = "Google Sheets", command=lambda: export(self).gsheets())
 
                 #Creates BACKUP/RESTORE pop-up menu
                 self.popup_backup = Menu(master, tearoff = 0)
@@ -252,6 +252,7 @@ class main_window:
 
                 #Creates TOOLS pop-up menu
                 self.popup_tools = Menu(master, tearoff = 0)
+                self.popup_tools.add_command(label = "Preferences", command=lambda: preferences_window(self))
                 self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
                 self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)                
                 self.popup_tools.add_cascade(label = "Lists", menu=self.popup_lists)
@@ -450,31 +451,42 @@ class main_window:
                 self.lblgamecount = Label (self.FrameGames)
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
-                #Imports filters and window size from "vgames.ini" file
-                if os.path.exists('vgames.ini'):  
-                        try:
-                                config = configparser.ConfigParser()
-                                config.read('vgames.ini')
+                #Sets default Preferences:
+                self.AutoComplete = False
+                self.GoogleSheetsDBURL = "https://docs.google.com/spreadsheets/u/0/"
+                self.GoogleSheetsWishListURL = "https://docs.google.com/spreadsheets/u/0/"
 
+                #Imports settings from "vgames.ini" file
+                if os.path.exists('vgames.ini'):  
+                        
+                        config = configparser.ConfigParser()
+                        config.read('vgames.ini')
+
+                        if config.has_section('FILTERS'):
                                 SystemName = config.get('FILTERS', 'SystemName')
                                 Progress = config.get('FILTERS', 'Progress')
                                 Format = config.get('FILTERS', 'Format')
                                 Region = config.get('FILTERS', 'Region')
                                 View = config.get('FILTERS', 'View')
                                 SearchString = config.get ('FILTERS', 'SearchString')
-                                State = config.get ('WINDOW', 'State')
-                                
+
                                 self.system_menu_option.set(SystemName)
                                 self.ProgressSelection.set(Progress)
                                 self.FormatSelection.set(Format)
                                 self.RegionSelection.set(Region)
                                 self.ViewSelection.set(View)
                                 self.txt_search_bar.insert(0, SearchString)
-                                self.master.state(State)
-                        except:
-                                #Passes try block if config line is not found.
-                                pass
 
+                        if config.has_section('WINDOW'):
+                                State = config.get ('WINDOW', 'State')
+
+                                self.master.state(State)
+
+                        if config.has_section('PREFERENCES'):
+                                self.AutoComplete = config.getboolean('PREFERENCES', 'AutoComplete')
+                                self.GoogleSheetsDBURL = config.get('PREFERENCES', 'GoogleSheetsDBURL')
+                                self.GoogleSheetsWishListURL = config.get('PREFERENCES', 'GoogleSheetsWishListURL')
+                                                                
                 #Initial update of the Treeview Games list
                 self.update_game_list()
 
@@ -839,7 +851,7 @@ class main_window:
                 if self.changes:
                         response = messagebox.askyesno ("Close", "Changes have been made to the database! Would you like to update Google Sheets?")
                         if response:
-                                export().gsheets()
+                                export(self).gsheets()
 
                 #Saves current filters and window state to 'vgames.ini' file
                 config = configparser.ConfigParser()
@@ -853,7 +865,12 @@ class main_window:
                                 }
 
                 config['WINDOW'] = {
-                        'State': self.master.state()}                
+                        'State': self.master.state()}
+
+                config['PREFERENCES'] = {
+                        'AutoComplete': self.AutoComplete,
+                        'GoogleSheetsDBURL': self.GoogleSheetsDBURL,
+                        'GoogleSheetsWishListURL': self.GoogleSheetsWishListURL}                
       
                 with open("vgames.ini","w") as f:
                         config.write(f)
@@ -940,8 +957,10 @@ class game_info_window:
                 self.systems_list = []
                 for row in self.system:
                         self.systems_list.append(row[0])
-                self.txt_system = AutocompleteCombobox(self.framesystem, width = 20, value=self.systems_list, completevalues=self.systems_list)
-                # self.txt_system = ttk.Combobox(self.framesystem, value=self.systems_list, width = 20)
+                if self.main_window.AutoComplete:
+                        self.txt_system = AutocompleteCombobox(self.framesystem, width = 20, value=self.systems_list, completevalues=self.systems_list)
+                else:
+                        self.txt_system = ttk.Combobox(self.framesystem, value=self.systems_list, width = 20)
                 self.txt_system.grid(row=0, column=1)
                 self.txt_system.focus()
 
@@ -973,8 +992,10 @@ class game_info_window:
                 self.company_list = []
                 for row in self.company:
                         self.company_list.append(row[0])
-                self.txt_Company = AutocompleteCombobox(self.framegameinfo, width = 30, value=self.company_list, completevalues=self.company_list)
-                # self.txt_Company = ttk.Combobox(self.framegameinfo, value=self.company_list, width = 47)
+                if self.main_window.AutoComplete:
+                        self.txt_Company = AutocompleteCombobox(self.framegameinfo, width = 30, value=self.company_list, completevalues=self.company_list)
+                else:
+                        self.txt_Company = ttk.Combobox(self.framegameinfo, value=self.company_list, width = 30)
                 self.txt_Company.grid(row=2, column=1, sticky=W)
 
                 self.lbl_Genre = Label (self.framegameinfo, text= "Genre:", fg="white", bg="black")
@@ -984,8 +1005,10 @@ class game_info_window:
                 self.genres_list = []
                 for row in self.genre:
                         self.genres_list.append(row[0])
-                self.txt_Genre = AutocompleteCombobox(self.framegameinfo, width = 30, value=self.genres_list, completevalues=self.genres_list)
-                # self.txt_Genre = ttk.Combobox(self.framegameinfo, value=self.genres_list, width = 47)
+                if self.main_window.AutoComplete:
+                        self.txt_Genre = AutocompleteCombobox(self.framegameinfo, width = 30, value=self.genres_list, completevalues=self.genres_list)
+                else:
+                        self.txt_Genre = ttk.Combobox(self.framegameinfo, value=self.genres_list, width = 30)
                 self.txt_Genre.grid(row=3, column=1, sticky=W)
 
                 self.lbl_Format = Label (self.framegameinfo, text= "Format:", fg="white", bg="black")
@@ -1623,7 +1646,7 @@ class wish_list_window:
                 opengsheetprompt = messagebox.askyesno ("Google Sheets", "Wishlist copied to clipboard.\n\nWould you like to open Google Sheets?")
         
                 if opengsheetprompt == True:
-                        webbrowser.open("https://docs.google.com/spreadsheets/u/0/")
+                        webbrowser.open(self.main_window.GoogleSheetsWishListURL)
         
         def sort_column(self, tview, column, reverse):
                                                
@@ -1817,6 +1840,128 @@ class edit_lists_window:
                         self.main_window.update_systems_menu()
                 else:
                         self.edit_lists_window.focus()
+
+class preferences_window:
+        
+        def __init__(self, main_window):
+                
+                self.main_window = main_window
+
+                self.preferences_window=Toplevel()
+                self.preferences_window.geometry("625x275")
+                self.preferences_window.title("Preferences")
+                self.preferences_window.iconbitmap("vgames.ico")
+                self.preferences_window.configure(bg='#404040')
+                
+                self.frametop=LabelFrame(self.preferences_window, padx=10, pady=10, fg='yellow', bg = 'black')
+                self.frametop.pack (side= TOP, padx=5, pady=5)
+                self.framegameinfowindow=LabelFrame(self.frametop, text="Game Info Window", font = "bold", padx=10, pady=10, fg='yellow', bg = 'black')
+                self.framegameinfowindow.pack (side= TOP, padx=5, pady=5)
+                self.framegooglesheets=LabelFrame(self.frametop, text = "Google Sheets URLs", font = "bold", fg = 'yellow', bg = 'black', padx = 5, pady =5)
+                self.framegooglesheets.pack (side=TOP, padx=5, pady =5)
+                self.framebottom=LabelFrame(self.preferences_window, bg = 'black', padx = 5, pady =5)
+                self.framebottom.pack (side=BOTTOM, padx=5, pady =5)
+
+                self.lbl_AutoCompleteSelection = Label (self.framegameinfowindow, text= "AutoComplete:", fg="white", bg="black")
+                self.lbl_AutoCompleteSelection.grid (row=0, column=0, sticky=E)
+                values = ['Off', 'On']
+                self.txt_AutoCompleteSelection = StringVar()
+                self.txt_AutoCompleteSelection = ttk.Combobox(self.framegameinfowindow, values = values, state="readonly", width=7)              
+                self.txt_AutoCompleteSelection.grid(row=0, column=1, sticky=W)
+                
+                #Sets AutoComplete option based on boolean True/False
+                if self.main_window.AutoComplete:
+                        self.txt_AutoCompleteSelection.set("On")
+                else:
+                        self.txt_AutoCompleteSelection.set("Off")
+
+                self.lbl_SheetsURLDB = Label (self.framegooglesheets, text= "Main Database:", fg="white", bg="black")
+                self.lbl_SheetsURLDB.grid (row=0, column=0, sticky=E)
+                self.txt_SheetsURLDB = Entry (self.framegooglesheets, fg = "black", bg = "white", width=50)
+                self.txt_SheetsURLDB.grid(row = 0, column= 1, sticky=W)
+                self.txt_SheetsURLDB.insert(0, self.main_window.GoogleSheetsDBURL)
+
+                #Button to set the "Sheets URL (Main Database)" field to default
+                self.btn_set_sheets_db_default = Button (
+                        self.framegooglesheets,
+                        text = "Set to Default",
+                        width = 10,
+                        height= 1,
+                        bg="grey",
+                        fg="white",
+                        command=self.set_sheets_db_default
+                )
+                self.btn_set_sheets_db_default.grid(row=0, column=2, padx=5)
+
+                self.lbl_SheetsURLWishList = Label (self.framegooglesheets, text= "Wish List:", fg="white", bg="black")
+                self.lbl_SheetsURLWishList.grid (row=1, column=0, sticky=E)
+                self.txt_SheetsURLWishList = Entry (self.framegooglesheets, fg = "black", bg = "white", width=50)
+                self.txt_SheetsURLWishList.grid(row = 1, column= 1, sticky=W)
+                self.txt_SheetsURLWishList.insert(0, self.main_window.GoogleSheetsWishListURL)
+
+                #Button to set the "Sheets URL (Wish List)" field to default
+                self.btn_set_sheets_wishlist_default = Button (
+                        self.framegooglesheets,
+                        text = "Set to Default",
+                        width = 10,
+                        height= 1,
+                        bg="grey",
+                        fg="white",
+                        command=self.set_sheets_wishlist_default
+                )
+                self.btn_set_sheets_wishlist_default.grid(row=1, column=2, padx=5)
+
+                self.btn_save = Button(
+                self.framebottom,
+                text = "Save",
+                width = 15,
+                height= 2,
+                bg="green",
+                fg="white",
+                command=self.save
+
+                ) 
+                self.btn_save.grid(row=0, column=0, padx=5, pady=5)
+
+                self.btn_cancel = Button(
+                self.framebottom,
+                text = "Cancel",
+                width = 15,
+                height= 2,
+                bg="red",
+                fg="white",
+                command=self.preferences_window.destroy
+
+                ) 
+                self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
+        
+                self.preferences_window.mainloop()
+
+        def set_sheets_db_default(self):
+                self.txt_SheetsURLDB.delete(0, END)
+                self.txt_SheetsURLDB.insert(0, "https://docs.google.com/spreadsheets/u/0/")
+        
+        def set_sheets_wishlist_default(self):
+                self.txt_SheetsURLWishList.delete(0, END)
+                self.txt_SheetsURLWishList.insert(0, "https://docs.google.com/spreadsheets/u/0/")
+
+        def save(self):
+                if self.txt_SheetsURLDB.get() == "" or self.txt_SheetsURLWishList.get() == "":
+                        messagebox.showwarning ("Preferences", "Google URLs cannot be left blank!")
+                        self.preferences_window.focus_force()
+                        return
+
+                #Sets AutoComplete variable based on drop down
+                if self.txt_AutoCompleteSelection.get() == "On":
+                        self.main_window.AutoComplete = True
+                if self.txt_AutoCompleteSelection.get() == "Off":
+                        self.main_window.AutoComplete = False
+        
+                #Saves Google Sheets URL
+                self.main_window.GoogleSheetsDBURL = self.txt_SheetsURLDB.get()
+                self.main_window.GoogleSheetsWishListURL = self.txt_SheetsURLWishList.get()
+
+                self.preferences_window.destroy()
 
 class sql_query_window:
         
@@ -2258,7 +2403,10 @@ class hangman:
 
 class export:
 
-        def __init__(self):
+        def __init__(self, main_window):
+
+                self.main_window = main_window
+
                 #Creates Panadas Dataframe with all records
                 conn = database().open()
                 self.df = pd.read_sql_query("""SELECT tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed,
@@ -2296,9 +2444,8 @@ class export:
                 self.df.to_clipboard(excel=True, index=False)
 
                 opengsheetprompt = messagebox.askyesno ("Google Sheets", "Games copied to clipboard.\n\nWould you like to open Google Sheets?")
-
                 if opengsheetprompt == True:
-                        webbrowser.open("https://docs.google.com/spreadsheets/u/0/")
+                        webbrowser.open(self.main_window.GoogleSheetsDBURL)
 
 class backup:
         def __init__(self, main_window):
