@@ -2,6 +2,11 @@
 
 <b>UPDATES</b>
 
+4-30-2023
+- Added a <b>Preferences</b> window. This can be found on the <i>Tools</i> menu. At this time, two preferences can be changed:
+  1. The ability to toggle AutoComplete on and off on the Game Info Window.
+  2. When opening Google Sheets after an export, the URL can now be customized to open to a specific sheet.
+  
 4-16-2023
 - On the main window, the <b>System</b> column will hide when a specific system is selected.
 - Fixed a bug with sorting columns on the Wish List window.
