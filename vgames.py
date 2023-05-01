@@ -929,13 +929,16 @@ class game_info_window:
                 self.framesystem=LabelFrame(self.frametop, text="System", font='bold', padx=5, pady=5, fg="yellow", bg="black")
                 self.framesystem.pack (side= LEFT, padx=5)
                 
-                self.frametitle=LabelFrame(self.frametop, text="Title", font='bold', padx=5, pady=5, fg="yellow", bg="black")
+                self.frametitle=LabelFrame(self.frametop, text="Title", font='bold', padx=5, pady=6, fg="yellow", bg="black")
                 self.frametitle.pack (side= LEFT, padx=5)
+
+                self.framesearch=LabelFrame(self.frametop, text=" ", borderwidth=0, highlightthickness=0, padx=5, fg="yellow", bg="black")
+                self.framesearch.pack (side= RIGHT)
 
                 self.framemiddle=LabelFrame(self.game_info_window, labelanchor=N, padx=5, pady=5, fg="yellow", bg="black")
                 self.framemiddle.pack (side=TOP)
                 
-                self.framegameinfo=LabelFrame(self.framemiddle, text="Game Info", font='bold', padx=20, pady=5, fg="yellow", bg="black")
+                self.framegameinfo=LabelFrame(self.framemiddle, text="Game Info", font='bold', padx=20, pady=10, fg="yellow", bg="black")
                 self.framegameinfo.pack (side= LEFT, padx=5, pady=5)
 
                 self.framestats=LabelFrame(self.framemiddle, text="Stats", font='bold', padx=20, pady=5, fg="yellow", bg="black")
@@ -967,8 +970,8 @@ class game_info_window:
                 self.txt_title = Entry (self.frametitle, fg = "black", bg = "white", width=50)
                 self.txt_title.grid(row = 0, column= 0)
     
-                self.btn_quick_search = Button(
-                        self.frametitle,
+                self.btn_search_web = Button(
+                        self.framesearch,
                         text = "Search Web",
                         width = 10,
                         height= 1,
@@ -978,7 +981,7 @@ class game_info_window:
                 
                 ) 
 
-                self.btn_quick_search.grid(row=0, column=1, padx=10)
+                self.btn_search_web.grid(row=0, column=0)
 
                 self.lbl_year = Label (self.framegameinfo, text= "Year:", fg="white", bg="black")
                 self.lbl_year.grid(row = 1, column=0, sticky=E, padx = 5)
@@ -1868,18 +1871,12 @@ class preferences_window:
                 self.txt_AutoCompleteSelection = StringVar()
                 self.txt_AutoCompleteSelection = ttk.Combobox(self.framegameinfowindow, values = values, state="readonly", width=7)              
                 self.txt_AutoCompleteSelection.grid(row=0, column=1, sticky=W)
-                
-                #Sets AutoComplete option based on boolean True/False
-                if self.main_window.AutoComplete:
-                        self.txt_AutoCompleteSelection.set("On")
-                else:
-                        self.txt_AutoCompleteSelection.set("Off")
 
                 self.lbl_SheetsURLDB = Label (self.framegooglesheets, text= "Main Database:", fg="white", bg="black")
                 self.lbl_SheetsURLDB.grid (row=0, column=0, sticky=E)
                 self.txt_SheetsURLDB = Entry (self.framegooglesheets, fg = "black", bg = "white", width=50)
                 self.txt_SheetsURLDB.grid(row = 0, column= 1, sticky=W)
-                self.txt_SheetsURLDB.insert(0, self.main_window.GoogleSheetsDBURL)
+                
 
                 #Button to set the "Sheets URL (Main Database)" field to default
                 self.btn_set_sheets_db_default = Button (
@@ -1897,7 +1894,7 @@ class preferences_window:
                 self.lbl_SheetsURLWishList.grid (row=1, column=0, sticky=E)
                 self.txt_SheetsURLWishList = Entry (self.framegooglesheets, fg = "black", bg = "white", width=50)
                 self.txt_SheetsURLWishList.grid(row = 1, column= 1, sticky=W)
-                self.txt_SheetsURLWishList.insert(0, self.main_window.GoogleSheetsWishListURL)
+                
 
                 #Button to set the "Sheets URL (Wish List)" field to default
                 self.btn_set_sheets_wishlist_default = Button (
@@ -1934,6 +1931,15 @@ class preferences_window:
 
                 ) 
                 self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
+
+                #Sets values based on current settings
+                if self.main_window.AutoComplete:
+                        self.txt_AutoCompleteSelection.set("On")
+                else:
+                        self.txt_AutoCompleteSelection.set("Off")
+
+                self.txt_SheetsURLDB.insert(0, self.main_window.GoogleSheetsDBURL)
+                self.txt_SheetsURLWishList.insert(0, self.main_window.GoogleSheetsWishListURL)
         
                 self.preferences_window.mainloop()
 
@@ -1957,7 +1963,7 @@ class preferences_window:
                 if self.txt_AutoCompleteSelection.get() == "Off":
                         self.main_window.AutoComplete = False
         
-                #Saves Google Sheets URL
+                #Sets Google Sheets URL
                 self.main_window.GoogleSheetsDBURL = self.txt_SheetsURLDB.get()
                 self.main_window.GoogleSheetsWishListURL = self.txt_SheetsURLWishList.get()
 
