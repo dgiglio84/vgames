@@ -140,31 +140,31 @@ def create_database():
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Playtime NUMERIC NOT NULL DEFAULT ''")
         except:
-                print ("Playtime column already exists.")              
+                pass        
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Completed TEXT NOT NULL DEFAULT ''")
         except:
-                print ("Date_Completed column already exists.")               
+                pass            
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Rating NUMERIC NOT NULL DEFAULT ''")
         except:	
-                print ("Rating column already exists.")
+                pass
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Region NUMERIC NOT NULL DEFAULT ''")
         except:	
-                print ("Region column already exists.")
+                pass
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Started TEXT NOT NULL DEFAULT ''")
         except:	
-                print ("Date_Started column already exists.")
+                pass
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Created TEXT DEFAULT ''")
         except:	
-                print ("TimeStamp_Created column already exists.")
+                pass
         try:
                 database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Updated TEXT DEFAULT ''")
         except:	
-                print ("TimeStamp_Updated column already exists.")
+                pass
         
         if FirstRun:
                 create_defaults()
@@ -357,8 +357,7 @@ class main_window:
 
                 #Search bar
                 self.txt_search_bar = Entry(self.FrameSearch, width = 40)
-                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
-                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
+                self.txt_search_bar.bind("<Return>", lambda event: self.update_game_list())
                 self.txt_search_bar.grid(row=0, column=1)
 
                 #Clear button
@@ -451,7 +450,9 @@ class main_window:
                 self.lblgamecount = Label (self.FrameGames)
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
-                #Sets default Preferences:
+                #Sets Default Preferences:
+                self.InstantSearch = True
+                self.GoogleExitWarning = True
                 self.AutoComplete = False
                 self.GoogleSheetsDBURL = "https://docs.google.com/spreadsheets/u/0/"
                 self.GoogleSheetsWishListURL = "https://docs.google.com/spreadsheets/u/0/"
@@ -477,14 +478,23 @@ class main_window:
                                 self.ViewSelection.set(View)
                                 self.txt_search_bar.insert(0, SearchString)
 
-                        if config.has_section('WINDOW'):
+                        if config.has_option('WINDOW', 'State'):
                                 State = config.get ('WINDOW', 'State')
 
                                 self.master.state(State)
 
-                        if config.has_section('PREFERENCES'):
+                        if config.has_option('PREFERENCES', 'InstantSearch'):
+                                self.InstantSearch = config.getboolean('PREFERENCES', 'InstantSearch')
+                                if self.InstantSearch:
+                                        self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
+                                        self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
+                        if config.has_option('PREFERENCES', 'GoogleExitWarning'):
+                                self.GoogleExitWarning = config.getboolean('PREFERENCES', 'GoogleExitWarning')
+                        if config.has_option('PREFERENCES', 'AutoComplete'):
                                 self.AutoComplete = config.getboolean('PREFERENCES', 'AutoComplete')
+                        if config.has_option('PREFERENCES', 'GoogleSheetsDBURL'):
                                 self.GoogleSheetsDBURL = config.get('PREFERENCES', 'GoogleSheetsDBURL')
+                        if config.has_option('PREFERENCES', 'GoogleSheetsWishListURL'):
                                 self.GoogleSheetsWishListURL = config.get('PREFERENCES', 'GoogleSheetsWishListURL')
                                                                 
                 #Initial update of the Treeview Games list
@@ -848,7 +858,7 @@ class main_window:
         def close_app(self):
                         
                 #Adds warning if changes are made
-                if self.changes:
+                if self.changes and self.GoogleExitWarning:
                         response = messagebox.askyesno ("Close", "Changes have been made to the database! Would you like to update Google Sheets?")
                         if response:
                                 export(self).gsheets()
@@ -868,6 +878,8 @@ class main_window:
                         'State': self.master.state()}
 
                 config['PREFERENCES'] = {
+                        'InstantSearch': self.InstantSearch,
+                        'GoogleExitWarning': self.GoogleExitWarning,
                         'AutoComplete': self.AutoComplete,
                         'GoogleSheetsDBURL': self.GoogleSheetsDBURL,
                         'GoogleSheetsWishListURL': self.GoogleSheetsWishListURL}                
@@ -1851,19 +1863,38 @@ class preferences_window:
                 self.main_window = main_window
 
                 self.preferences_window=Toplevel()
-                self.preferences_window.geometry("625x275")
+                self.preferences_window.geometry("625x325")
                 self.preferences_window.title("Preferences")
                 self.preferences_window.iconbitmap("vgames.ico")
                 self.preferences_window.configure(bg='#404040')
                 
                 self.frametop=LabelFrame(self.preferences_window, padx=10, pady=10, fg='yellow', bg = 'black')
                 self.frametop.pack (side= TOP, padx=5, pady=5)
-                self.framegameinfowindow=LabelFrame(self.frametop, text="Game Info Window", font = "bold", padx=10, pady=10, fg='yellow', bg = 'black')
-                self.framegameinfowindow.pack (side= TOP, padx=5, pady=5)
-                self.framegooglesheets=LabelFrame(self.frametop, text = "Google Sheets URLs", font = "bold", fg = 'yellow', bg = 'black', padx = 5, pady =5)
-                self.framegooglesheets.pack (side=TOP, padx=5, pady =5)
+                self.framemiddle=LabelFrame(self.preferences_window, bg = 'black', padx = 5, pady =5)
+                self.framemiddle.pack (side=TOP, padx=5, pady =5)
                 self.framebottom=LabelFrame(self.preferences_window, bg = 'black', padx = 5, pady =5)
                 self.framebottom.pack (side=BOTTOM, padx=5, pady =5)
+
+                self.framemainwindow=LabelFrame(self.frametop, text="Main Window", font = "bold", padx=10, pady=10, fg='yellow', bg = 'black')
+                self.framemainwindow.pack (side= LEFT, padx=5, pady=5)
+                self.framegameinfowindow=LabelFrame(self.frametop, text="Game Info Window", font = "bold", padx=10, pady=10, fg='yellow', bg = 'black')
+                self.framegameinfowindow.pack (side= RIGHT, padx=5, pady=5)
+                self.framegooglesheets=LabelFrame(self.framemiddle, text = "Google Sheets URLs", font = "bold", fg = 'yellow', bg = 'black', padx = 5, pady =5)
+                self.framegooglesheets.pack (side=TOP, padx=5, pady =5)
+
+                self.lbl_InstantSearch = Label (self.framemainwindow, text= "Instant Search:", fg="white", bg="black")
+                self.lbl_InstantSearch.grid (row=0, column=0, sticky=E)
+                values = ['Off', 'On']
+                self.txt_InstantSearch = StringVar()
+                self.txt_InstantSearch = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=7)              
+                self.txt_InstantSearch.grid(row=0, column=1, sticky=W)
+
+                self.lbl_GoogleExitWarning = Label (self.framemainwindow, text= "Google Sheets Warning on Exit:", fg="white", bg="black")
+                self.lbl_GoogleExitWarning.grid (row=1, column=0, sticky=E)
+                values = ['Off', 'On']
+                self.txt_GoogleExitWarning = StringVar()
+                self.txt_GoogleExitWarning = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=7)              
+                self.txt_GoogleExitWarning.grid(row=1, column=1, sticky=W)
 
                 self.lbl_AutoCompleteSelection = Label (self.framegameinfowindow, text= "AutoComplete:", fg="white", bg="black")
                 self.lbl_AutoCompleteSelection.grid (row=0, column=0, sticky=E)
@@ -1871,12 +1902,13 @@ class preferences_window:
                 self.txt_AutoCompleteSelection = StringVar()
                 self.txt_AutoCompleteSelection = ttk.Combobox(self.framegameinfowindow, values = values, state="readonly", width=7)              
                 self.txt_AutoCompleteSelection.grid(row=0, column=1, sticky=W)
+                self.lbl_Spacer1 = Label (self.framegameinfowindow, text= "", fg="white", bg="black")
+                self.lbl_Spacer1.grid (row=1, column=0, sticky=E)
 
                 self.lbl_SheetsURLDB = Label (self.framegooglesheets, text= "Main Database:", fg="white", bg="black")
                 self.lbl_SheetsURLDB.grid (row=0, column=0, sticky=E)
                 self.txt_SheetsURLDB = Entry (self.framegooglesheets, fg = "black", bg = "white", width=50)
                 self.txt_SheetsURLDB.grid(row = 0, column= 1, sticky=W)
-                
 
                 #Button to set the "Sheets URL (Main Database)" field to default
                 self.btn_set_sheets_db_default = Button (
@@ -1932,7 +1964,15 @@ class preferences_window:
                 ) 
                 self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
 
-                #Sets values based on current settings
+                #Imports current settings
+                if self.main_window.InstantSearch:
+                        self.txt_InstantSearch.set("On")
+                else:
+                        self.txt_InstantSearch.set("Off")
+                if self.main_window.GoogleExitWarning:
+                        self.txt_GoogleExitWarning.set("On")
+                else:
+                        self.txt_GoogleExitWarning.set("Off")
                 if self.main_window.AutoComplete:
                         self.txt_AutoCompleteSelection.set("On")
                 else:
@@ -1957,13 +1997,26 @@ class preferences_window:
                         self.preferences_window.focus_force()
                         return
 
-                #Sets AutoComplete variable based on drop down
+                #Saves settings
+                if self.txt_InstantSearch.get() == "On":
+                        self.main_window.InstantSearch = True
+                        #Enables bindings if set to 'On'
+                        self.main_window.txt_search_bar.bind("<KeyPress>", lambda event: self.main_window.update_game_list())
+                        self.main_window.txt_search_bar.bind("<KeyRelease>", lambda event: self.main_window.update_game_list())
+                else:
+                        self.main_window.InstantSearch = False
+                        #Removes bindings if set to 'Off'
+                        self.main_window.txt_search_bar.unbind("<KeyPress>")
+                        self.main_window.txt_search_bar.unbind("<KeyRelease>")
+                if self.txt_GoogleExitWarning.get() == "On":
+                        self.main_window.GoogleExitWarning = True
+                else:
+                        self.main_window.GoogleExitWarning = False
                 if self.txt_AutoCompleteSelection.get() == "On":
                         self.main_window.AutoComplete = True
-                if self.txt_AutoCompleteSelection.get() == "Off":
+                else:
                         self.main_window.AutoComplete = False
-        
-                #Sets Google Sheets URL
+
                 self.main_window.GoogleSheetsDBURL = self.txt_SheetsURLDB.get()
                 self.main_window.GoogleSheetsWishListURL = self.txt_SheetsURLWishList.get()
 
