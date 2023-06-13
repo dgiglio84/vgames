@@ -2,6 +2,11 @@
 
 <b>UPDATES</b>
 
+6-12-2023
+-Added two more options on the <b>Preferences</b> window:
+  1. Instant Search (On/Off) - If switched on, search results will appear as you type. If switched off, you will have to press Enter to complete a search.
+  2. Google Sheets Warning on Exit (On/Off) - If switched on, you will prompted to export your database to Google Sheets if changes have been made. If switched off, you will not be prompted.
+
 4-30-2023
 - Added a <b>Preferences</b> window. This can be found on the <i>Tools</i> menu. At this time, two preferences can be changed:
   1. The ability to toggle AutoComplete on and off on the Game Info Window.
