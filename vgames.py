@@ -136,36 +136,22 @@ def create_database():
 	"SystemName"	TEXT NOT NULL,
 	PRIMARY KEY("SystemID" AUTOINCREMENT))""")
 
-        #Adds newer columns to tbl_Games. If the column exists, it is skipped.
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN Playtime NUMERIC NOT NULL DEFAULT ''")
-        except:
-                pass        
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Completed TEXT NOT NULL DEFAULT ''")
-        except:
-                pass            
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN Rating NUMERIC NOT NULL DEFAULT ''")
-        except:	
-                pass
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN Region NUMERIC NOT NULL DEFAULT ''")
-        except:	
-                pass
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN Date_Started TEXT NOT NULL DEFAULT ''")
-        except:	
-                pass
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Created TEXT DEFAULT ''")
-        except:	
-                pass
-        try:
-                database().execute("ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Updated TEXT DEFAULT ''")
-        except:	
-                pass
-        
+        #Adds newer columns to tbl_Games. If the column already exists, it is skipped.
+        columns = ["ALTER TABLE tbl_Games ADD COLUMN Playtime NUMERIC NOT NULL DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN Date_Completed TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN Rating NUMERIC NOT NULL DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN Region NUMERIC NOT NULL DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN Date_Started TEXT NOT NULL DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Created TEXT DEFAULT ''",
+                "ALTER TABLE tbl_Games ADD COLUMN TimeStamp_Updated TEXT DEFAULT ''"
+                ]
+
+        for column in columns:
+                try:
+                        database().execute(column)
+                except:
+                        pass            
+                
         if FirstRun:
                 create_defaults()
 
@@ -358,6 +344,8 @@ class main_window:
                 #Search bar
                 self.txt_search_bar = Entry(self.FrameSearch, width = 40)
                 self.txt_search_bar.bind("<Return>", lambda event: self.update_game_list())
+                self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
+                self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
                 self.txt_search_bar.grid(row=0, column=1)
 
                 #Clear button
@@ -402,7 +390,7 @@ class main_window:
                 style.configure("Treeview.Heading", background="red", foreground="white")
 
                 self.games_list = ttk.Treeview(self.FrameGames, height = 20)
-                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Region', 'Progress', 'Playtime', 'Date Started', 'Date Completed', 'Total Days', 'Rating')
+                self.games_list['columns'] = ('System', 'Title', 'Year', 'Company', 'Genre', 'Format', 'Region', 'Progress', 'Playtime', 'Date Started', 'Date Completed', 'Total Days', 'Rating', 'Notes')
 
                 self.games_list.column("#0", width=0, stretch=NO)
 
@@ -414,7 +402,7 @@ class main_window:
                 self.games_list.column("Genre",anchor=W,width=150)
                 self.games_list.column("Format",anchor=W,width=100)
                 self.games_list.column("Region",anchor=W,width=80)
-
+                
                 # 'Stats' columns
                 self.games_list.column("Progress",anchor=W,width=120)
                 self.games_list.column("Playtime",anchor=W,width=60)
@@ -422,6 +410,9 @@ class main_window:
                 self.games_list.column("Date Completed",anchor=W,width=100)
                 self.games_list.column("Total Days",anchor=W,width=70)
                 self.games_list.column("Rating",anchor=W,width=100)
+                
+                # 'Notes' column
+                self.games_list.column("Notes",anchor=W,width=45)
 
                 self.games_list.heading("#0",text="",anchor=W)
                 self.games_list.heading("System",text="System",anchor=W, command=lambda: self.sort_column (self.games_list, "System", False))
@@ -437,6 +428,7 @@ class main_window:
                 self.games_list.heading("Date Completed",text="Date Completed",anchor=W, command=lambda: self.sort_column (self.games_list, "Date Completed", False))
                 self.games_list.heading("Total Days",text="Total Days",anchor=W, command=lambda: self.sort_column (self.games_list, "Total Days", False))
                 self.games_list.heading("Rating",text="Rating",anchor=W, command=lambda: self.sort_column (self.games_list, "Rating", False))
+                self.games_list.heading("Notes",text="Notes",anchor=W, command=lambda: self.sort_column (self.games_list, "Notes", False))
              
                 self.games_list.grid(row=0, column=0)
 
@@ -451,6 +443,7 @@ class main_window:
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
                 #Sets Default Preferences:
+                self.LoadFilter = True
                 self.InstantSearch = True
                 self.GoogleExitWarning = True
                 self.AutoComplete = False
@@ -471,23 +464,20 @@ class main_window:
                                 View = config.get('FILTERS', 'View')
                                 SearchString = config.get ('FILTERS', 'SearchString')
 
-                                self.system_menu_option.set(SystemName)
-                                self.ProgressSelection.set(Progress)
-                                self.FormatSelection.set(Format)
-                                self.RegionSelection.set(Region)
-                                self.ViewSelection.set(View)
-                                self.txt_search_bar.insert(0, SearchString)
 
                         if config.has_option('WINDOW', 'State'):
                                 State = config.get ('WINDOW', 'State')
 
                                 self.master.state(State)
 
+                        if config.has_option('PREFERENCES', 'LoadFilter'):
+                                self.LoadFilter = config.getboolean('PREFERENCES', 'LoadFilter')
                         if config.has_option('PREFERENCES', 'InstantSearch'):
                                 self.InstantSearch = config.getboolean('PREFERENCES', 'InstantSearch')
-                                if self.InstantSearch:
-                                        self.txt_search_bar.bind("<KeyPress>", lambda event: self.update_game_list())
-                                        self.txt_search_bar.bind("<KeyRelease>", lambda event: self.update_game_list())
+                                if self.InstantSearch == False:
+                                        #Removes binding if Instant Search is disabled
+                                        self.txt_search_bar.unbind("<KeyPress>")
+                                        self.txt_search_bar.unbind("<KeyRelease>")
                         if config.has_option('PREFERENCES', 'GoogleExitWarning'):
                                 self.GoogleExitWarning = config.getboolean('PREFERENCES', 'GoogleExitWarning')
                         if config.has_option('PREFERENCES', 'AutoComplete'):
@@ -496,6 +486,15 @@ class main_window:
                                 self.GoogleSheetsDBURL = config.get('PREFERENCES', 'GoogleSheetsDBURL')
                         if config.has_option('PREFERENCES', 'GoogleSheetsWishListURL'):
                                 self.GoogleSheetsWishListURL = config.get('PREFERENCES', 'GoogleSheetsWishListURL')
+
+                        #Loads saved filter (if 'Load filter on startup' is enabled)
+                        if self.LoadFilter:      
+                                self.system_menu_option.set(SystemName)
+                                self.ProgressSelection.set(Progress)
+                                self.FormatSelection.set(Format)
+                                self.RegionSelection.set(Region)
+                                self.ViewSelection.set(View)
+                                self.txt_search_bar.insert(0, SearchString)
                                                                 
                 #Initial update of the Treeview Games list
                 self.update_game_list()
@@ -659,40 +658,52 @@ class main_window:
                 if SearchString == "":
                         SearchString = "%"
 
-                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed, 
+                Records = database().fetchall("""SELECT tbl_Games.GameID, tbl_System.SystemName as 'System', Title, Year, tbl_Company.CompanyName as 'Company', tbl_Genre.GenreName as 'Genre', Format, Region, Progress, Playtime, Date_Started, Date_Completed,
                 
                 CASE WHEN (Date_Started != "" and Date_Completed != "") THEN
                         CAST((JulianDay(Date_Completed) - JulianDay(Date_Started)) As Integer) 
                 ELSE ""
                 END AS Total_Days,
 
-                Rating
+                Rating, Notes
 
                 FROM tbl_Games
                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID 
                 LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID 
                 WHERE (Title LIKE ? OR Company LIKE ? OR Genre LIKE ?) AND SystemName LIKE ? AND Progress LIKE ? AND Format LIKE ? AND Region LIKE ?
-                ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format, Region))
+                ORDER BY System, 
+                
+                CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) 
+                WHEN Title like 'A %' THEN substring(Title, 3, 1000)
+                WHEN Title like 'An %' THEN substring(Title, 4, 1000)               
+                ELSE Title END""" , ('%' + SearchString + '%', '%' + SearchString + '%', '%' + SearchString + '%', SystemName, Progress, Format, Region))
                 
                 #Displays all games in Treeview. NOTE: The iid is set to the GameID in the DB.
                 gamecount = 0
                 for column in Records:
+
+                        #Sets Note indicator column if 'Notes' field is not blank
+                        if column[14] != "":
+                                NoteIndicator = "    ●    "
+                        else:
+                                NoteIndicator = ""
+
                         self.games_list.insert("", index='end',iid=column[0], text="",
-                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10], column[11], column[12], column[13]))
+                        values =(column[1], column[2], column[3], column[4], column[5], column[6], column[7], column[8], column[9], column[10], column[11], column[12], column[13], NoteIndicator))
                         gamecount += 1
 
                 #Sets Treeview columns based on "View" combo box
                 if View == "Game Info":
                         if SystemName != "%":
-                                self.games_list["displaycolumns"]=("Title", "Year", "Company", "Genre", "Format", "Region")
+                                self.games_list["displaycolumns"]=("Title", "Year", "Company", "Genre", "Format", "Region", "Notes")
                         else:
-                                self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region")
+                                self.games_list["displaycolumns"]=("System", "Title", "Year", "Company", "Genre", "Format", "Region", "Notes")
                 if View == "Stats":
                         if SystemName != "%":
-                                self.games_list["displaycolumns"]=("Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
+                                self.games_list["displaycolumns"]=("Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating", "Notes")
                         else:
-                                self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating")
+                                self.games_list["displaycolumns"]=("System", "Title", "Progress", "Playtime", "Date Started", "Date Completed", "Total Days", "Rating", "Notes")
 
                 #Sends number of games to 'update_game_count' function   
                 self.update_game_count(gamecount)
@@ -863,7 +874,7 @@ class main_window:
                         if response:
                                 export(self).gsheets()
 
-                #Saves current filters and window state to 'vgames.ini' file
+                #Saves current settings to 'vgames.ini' file
                 config = configparser.ConfigParser()
                 config['FILTERS'] = {
                         'SystemName': self.system_menu_option.get(), 
@@ -878,6 +889,7 @@ class main_window:
                         'State': self.master.state()}
 
                 config['PREFERENCES'] = {
+                        'LoadFilter': self.LoadFilter,
                         'InstantSearch': self.InstantSearch,
                         'GoogleExitWarning': self.GoogleExitWarning,
                         'AutoComplete': self.AutoComplete,
@@ -930,7 +942,7 @@ class game_info_window:
 
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
-                self.game_info_window.geometry("725x450")
+                self.game_info_window.geometry("725x475")
                 self.game_info_window.iconbitmap("vgames.ico")
                 self.game_info_window.configure(bg='#404040')
                 self.game_info_window.bind('<Escape>', lambda event: self.game_info_window.destroy())
@@ -959,8 +971,8 @@ class game_info_window:
                 self.framebottom=LabelFrame(self.game_info_window, padx=5, pady=5, fg="white", bg="black")
                 self.framebottom.pack (side=TOP, padx=5, pady=5)
 
-                self.framemiscinfo=LabelFrame(self.framebottom, text="Misc", font='bold', padx=5, pady=5, fg="yellow", bg="black")
-                self.framemiscinfo.pack (side=TOP, padx=5, pady=5)
+                self.framenotes=LabelFrame(self.framebottom, text="Notes", font='bold', padx=5, pady=5, fg="yellow", bg="black")
+                self.framenotes.pack (side=TOP, padx=5, pady=5)
 
                 self.framebuttons=LabelFrame(self.game_info_window,  padx=5, pady=5, fg="yellow", bg="black")
                 self.framebuttons.pack (side=TOP, padx=5, pady=5)
@@ -997,7 +1009,7 @@ class game_info_window:
 
                 self.lbl_year = Label (self.framegameinfo, text= "Year:", fg="white", bg="black")
                 self.lbl_year.grid(row = 1, column=0, sticky=E, padx = 5)
-                self.txt_year = Entry (self.framegameinfo, fg = "black", bg = "white", width=10)
+                self.txt_year = Entry (self.framegameinfo, fg = "black", bg = "white", width=8)
                 self.txt_year.grid(row = 1, column= 1, sticky=W)
 
                 self.lbl_Company = Label (self.framegameinfo, text= "Company:", fg="white", bg="black")
@@ -1069,6 +1081,9 @@ class game_info_window:
                 self.txt_Rating = ttk.Combobox(self.framestats, value = self.ratings_list, width = 5)
                 self.txt_Rating.grid(row = 5, column= 1, sticky=W)
 
+                self.txt_Notes = Text (self.framenotes, fg = "black", bg = "white", width=40, height=3, font=('Arial', 10), wrap=WORD)
+                self.txt_Notes.grid(row = 0, column= 0)
+
                 #Button to clear the "Date Started" field
                 self.btn_clear_Date_Started = Button (
                         self.framestats,
@@ -1093,10 +1108,7 @@ class game_info_window:
                 )
                 self.btn_clear_Date_Completed.grid(row=4, column=2, padx=5)
 
-                self.lbl_Notes = Label (self.framemiscinfo, text= "Notes:", fg="white", bg="black")
-                self.lbl_Notes.grid(row = 8, column=0, sticky=E, padx = 5)
-                self.txt_Notes = Entry (self.framemiscinfo, fg = "black", bg = "white", width=50)
-                self.txt_Notes.grid(row = 8, column= 1)
+
    
         def new_game_window(self, SystemName, Format):
 
@@ -1201,8 +1213,9 @@ class game_info_window:
                 self.txt_Date_Completed.config(state='readonly')
 
                 self.txt_Rating.set(old_field[12])
-                self.txt_Notes.insert(0, old_field[13])
+                self.txt_Notes.insert(END, old_field[13])
 
+                #Timestamps
                 if old_field[14] != "":
                         self.txt_TimeStampCreated.config(text=old_field[14])
                 elif old_field[14] == "":
@@ -1319,7 +1332,13 @@ class game_info_window:
                 if CompanyName not in self.company_list:
                         database().execute ("INSERT INTO tbl_Company (CompanyID, CompanyName) VALUES (null, ?)", (CompanyName,))
                 #Converts Genre field to CompanyID (from tbl_Genre)
-                CompanyID = database().fetchone ("SELECT CompanyID FROM tbl_Company WHERE CompanyName = ?", (CompanyName,))        
+                CompanyID = database().fetchone ("SELECT CompanyID FROM tbl_Company WHERE CompanyName = ?", (CompanyName,)) 
+
+                #Sets a local variable based on whether the 'Notes' text box is empty or not.
+                if len(self.txt_Notes.get("1.0", "end-1c")) == 0: #Empty
+                        Notes = ""
+                else: #Not empty
+                        Notes = self.txt_Notes.get('1.0', END)  
 
                 #Creates a new record
                 if New:
@@ -1341,7 +1360,7 @@ class game_info_window:
                                 'Date_Started': self.txt_Date_Started.get(),
                                 'Date_Completed': self.txt_Date_Completed.get(),
                                 'Rating': self.txt_Rating.get(),
-                                'Notes': self.txt_Notes.get(),
+                                'Notes': Notes,
                                 'TimeStamp_Created': TimeStamp_Created                            
                                 })
                                         
@@ -1362,7 +1381,7 @@ class game_info_window:
                                 'GenreID': GenreID[0],
                                 'Format': self.txt_Format.get(),
                                 'Region': self.txt_Region.get(),
-                                'Notes': self.txt_Notes.get(),
+                                'Notes': Notes,
                                 'Progress': self.txt_Progress.get(),
                                 'Playtime': self.txt_Playtime.get(),
                                 'Date_Started': self.txt_Date_Started.get(),
@@ -1863,7 +1882,7 @@ class preferences_window:
                 self.main_window = main_window
 
                 self.preferences_window=Toplevel()
-                self.preferences_window.geometry("625x325")
+                self.preferences_window.geometry("625x350")
                 self.preferences_window.title("Preferences")
                 self.preferences_window.iconbitmap("vgames.ico")
                 self.preferences_window.configure(bg='#404040')
@@ -1882,28 +1901,39 @@ class preferences_window:
                 self.framegooglesheets=LabelFrame(self.framemiddle, text = "Google Sheets URLs", font = "bold", fg = 'yellow', bg = 'black', padx = 5, pady =5)
                 self.framegooglesheets.pack (side=TOP, padx=5, pady =5)
 
-                self.lbl_InstantSearch = Label (self.framemainwindow, text= "Instant Search:", fg="white", bg="black")
-                self.lbl_InstantSearch.grid (row=0, column=0, sticky=E)
+                self.lbl_LoadFilter = Label (self.framemainwindow, text= "Load saved filter on startup: ", fg="white", bg="black")
+                self.lbl_LoadFilter.grid (row=0, column=0, sticky=W)
+                values = ['Off', 'On']
+                self.txt_LoadFilter = StringVar()
+                self.txt_LoadFilter = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=4)              
+                self.txt_LoadFilter.grid(row=0, column=1, sticky=W)
+
+                self.lbl_InstantSearch = Label (self.framemainwindow, text= "Instant Search: ", fg="white", bg="black")
+                self.lbl_InstantSearch.grid (row=1, column=0, sticky=W)
                 values = ['Off', 'On']
                 self.txt_InstantSearch = StringVar()
-                self.txt_InstantSearch = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=7)              
-                self.txt_InstantSearch.grid(row=0, column=1, sticky=W)
+                self.txt_InstantSearch = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=4)              
+                self.txt_InstantSearch.grid(row=1, column=1, sticky=W)
 
-                self.lbl_GoogleExitWarning = Label (self.framemainwindow, text= "Google Sheets Warning on Exit:", fg="white", bg="black")
-                self.lbl_GoogleExitWarning.grid (row=1, column=0, sticky=E)
+                self.lbl_GoogleExitWarning = Label (self.framemainwindow, text= "Google Sheets warning on exit: ", fg="white", bg="black")
+                self.lbl_GoogleExitWarning.grid (row=2, column=0, sticky=E)
                 values = ['Off', 'On']
                 self.txt_GoogleExitWarning = StringVar()
-                self.txt_GoogleExitWarning = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=7)              
-                self.txt_GoogleExitWarning.grid(row=1, column=1, sticky=W)
+                self.txt_GoogleExitWarning = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=4)              
+                self.txt_GoogleExitWarning.grid(row=2, column=1, sticky=W)
 
-                self.lbl_AutoCompleteSelection = Label (self.framegameinfowindow, text= "AutoComplete:", fg="white", bg="black")
+                self.lbl_AutoCompleteSelection = Label (self.framegameinfowindow, text= "AutoComplete: ", fg="white", bg="black")
                 self.lbl_AutoCompleteSelection.grid (row=0, column=0, sticky=E)
                 values = ['Off', 'On']
                 self.txt_AutoCompleteSelection = StringVar()
-                self.txt_AutoCompleteSelection = ttk.Combobox(self.framegameinfowindow, values = values, state="readonly", width=7)              
+                self.txt_AutoCompleteSelection = ttk.Combobox(self.framegameinfowindow, values = values, state="readonly", width=4)              
                 self.txt_AutoCompleteSelection.grid(row=0, column=1, sticky=W)
+
+
                 self.lbl_Spacer1 = Label (self.framegameinfowindow, text= "", fg="white", bg="black")
                 self.lbl_Spacer1.grid (row=1, column=0, sticky=E)
+                self.lbl_Spacer2 = Label (self.framegameinfowindow, text= "", fg="white", bg="black")
+                self.lbl_Spacer2.grid (row=2, column=0, sticky=E)
 
                 self.lbl_SheetsURLDB = Label (self.framegooglesheets, text= "Main Database:", fg="white", bg="black")
                 self.lbl_SheetsURLDB.grid (row=0, column=0, sticky=E)
@@ -1965,6 +1995,10 @@ class preferences_window:
                 self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
 
                 #Imports current settings
+                if self.main_window.LoadFilter:
+                        self.txt_LoadFilter.set("On")
+                else:
+                        self.txt_LoadFilter.set("Off")
                 if self.main_window.InstantSearch:
                         self.txt_InstantSearch.set("On")
                 else:
@@ -1998,6 +2032,10 @@ class preferences_window:
                         return
 
                 #Saves settings
+                if self.txt_LoadFilter.get() == "On":
+                        self.main_window.LoadFilter = True
+                else:
+                        self.main_window.LoadFilter = False
                 if self.txt_InstantSearch.get() == "On":
                         self.main_window.InstantSearch = True
                         #Enables bindings if set to 'On'
@@ -2480,7 +2518,11 @@ class export:
                 LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID
                 LEFT JOIN tbl_Genre ON tbl_Genre.GenreID = tbl_Games.GenreID
                 LEFT JOIN tbl_Company ON tbl_Company.CompanyID = tbl_Games.CompanyID  
-                ORDER BY System, CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) ELSE Title END""", conn)
+                ORDER BY System, 
+                CASE WHEN Title like 'The %' THEN substring(Title, 5, 1000) 
+                WHEN Title like 'A %' THEN substring(Title, 3, 1000)
+                WHEN Title like 'An %' THEN substring(Title, 4, 1000)                
+                ELSE Title END""", conn)
                 database().close()
 
         def csv(self):
@@ -2754,6 +2796,5 @@ class stats:
                 
 root = Tk()
 app = main_window(root)
-
 
 root.mainloop()
