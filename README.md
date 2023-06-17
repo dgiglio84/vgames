@@ -3,14 +3,14 @@
 <b>UPDATES</b>
 
 6-16-2023
--Added additional changes to the <i>Notes</i> field:
+- Added additional changes to the <i>Notes</i> field:
   1. The field can now contain multiple lines.
   2. On the Main Window, a <i>Notes</i> column has been added. Games that contain a note will show a ● in this column.
--Added a new preference called "Load saved filter on startup." If this is switched on, the filter from your previous session will be loaded. If this is switched off, the default filter will be displayed.
--Titles that start with the words "A" or "An" will be ignored when list is alphabetized.
+- Added a new preference called "Load saved filter on startup." If this is switched on, the filter from your previous session will be loaded. If this is switched off, the default filter will be displayed.
+- Titles that start with the words "A" or "An" will be ignored when list is alphabetized.
 
 6-12-2023
--Added two more options on the <b>Preferences</b> window:
+- Added two more options on the <b>Preferences</b> window:
   1. Instant Search (On/Off) - If switched on, search results will appear as you type. If switched off, you will have to press Enter to complete a search.
   2. Google Sheets Warning on Exit (On/Off) - If switched on, you will prompted to export your database to Google Sheets if changes have been made. If switched off, you will not be prompted.
 
