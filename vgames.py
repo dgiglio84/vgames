@@ -443,7 +443,7 @@ class main_window:
                 self.lblgamecount.grid(row=1, column=0, columnspan=1)
 
                 #Sets Default Preferences:
-                self.LoadFilter = True
+                self.ResetFilterStartup = False
                 self.InstantSearch = True
                 self.GoogleExitWarning = True
                 self.AutoComplete = False
@@ -470,8 +470,8 @@ class main_window:
 
                                 self.master.state(State)
 
-                        if config.has_option('PREFERENCES', 'LoadFilter'):
-                                self.LoadFilter = config.getboolean('PREFERENCES', 'LoadFilter')
+                        if config.has_option('PREFERENCES', 'ResetFilterStartup'):
+                                self.ResetFilterStartup = config.getboolean('PREFERENCES', 'ResetFilterStartup')
                         if config.has_option('PREFERENCES', 'InstantSearch'):
                                 self.InstantSearch = config.getboolean('PREFERENCES', 'InstantSearch')
                                 if self.InstantSearch == False:
@@ -488,7 +488,7 @@ class main_window:
                                 self.GoogleSheetsWishListURL = config.get('PREFERENCES', 'GoogleSheetsWishListURL')
 
                         #Loads saved filter (if 'Load filter on startup' is enabled)
-                        if self.LoadFilter:      
+                        if self.ResetFilterStartup == False:      
                                 self.system_menu_option.set(SystemName)
                                 self.ProgressSelection.set(Progress)
                                 self.FormatSelection.set(Format)
@@ -889,7 +889,7 @@ class main_window:
                         'State': self.master.state()}
 
                 config['PREFERENCES'] = {
-                        'LoadFilter': self.LoadFilter,
+                        'ResetFilterStartup': self.ResetFilterStartup,
                         'InstantSearch': self.InstantSearch,
                         'GoogleExitWarning': self.GoogleExitWarning,
                         'AutoComplete': self.AutoComplete,
@@ -918,9 +918,9 @@ class main_window_popup_menu:
                         y = self.event.y_root
                         self.main_window.popup_right_click.tk_popup(x, y, 0)
 
-                def Web(self):
-                        #Display Web Search popup menu
-                        self.main_window.popup_search_web.tk_popup()
+                # def Web(self):
+                #         #Display Web Search popup menu
+                #         self.main_window.popup_search_web.tk_popup()
 
                 def Stats(self):
                         #Displays stats popup menu
@@ -1901,12 +1901,12 @@ class preferences_window:
                 self.framegooglesheets=LabelFrame(self.framemiddle, text = "Google Sheets URLs", font = "bold", fg = 'yellow', bg = 'black', padx = 5, pady =5)
                 self.framegooglesheets.pack (side=TOP, padx=5, pady =5)
 
-                self.lbl_LoadFilter = Label (self.framemainwindow, text= "Load saved filter on startup: ", fg="white", bg="black")
-                self.lbl_LoadFilter.grid (row=0, column=0, sticky=W)
+                self.lbl_ResetFilterStartup = Label (self.framemainwindow, text= "Reset filter on startup: ", fg="white", bg="black")
+                self.lbl_ResetFilterStartup.grid (row=0, column=0, sticky=W)
                 values = ['Off', 'On']
-                self.txt_LoadFilter = StringVar()
-                self.txt_LoadFilter = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=4)              
-                self.txt_LoadFilter.grid(row=0, column=1, sticky=W)
+                self.txt_ResetFilterStartup = StringVar()
+                self.txt_ResetFilterStartup = ttk.Combobox(self.framemainwindow, values = values, state="readonly", width=4)              
+                self.txt_ResetFilterStartup.grid(row=0, column=1, sticky=W)
 
                 self.lbl_InstantSearch = Label (self.framemainwindow, text= "Instant Search: ", fg="white", bg="black")
                 self.lbl_InstantSearch.grid (row=1, column=0, sticky=W)
@@ -1995,10 +1995,10 @@ class preferences_window:
                 self.btn_cancel.grid(row=0, column=1, padx=5, pady=5)
 
                 #Imports current settings
-                if self.main_window.LoadFilter:
-                        self.txt_LoadFilter.set("On")
+                if self.main_window.ResetFilterStartup:
+                        self.txt_ResetFilterStartup.set("On")
                 else:
-                        self.txt_LoadFilter.set("Off")
+                        self.txt_ResetFilterStartup.set("Off")
                 if self.main_window.InstantSearch:
                         self.txt_InstantSearch.set("On")
                 else:
@@ -2032,10 +2032,10 @@ class preferences_window:
                         return
 
                 #Saves settings
-                if self.txt_LoadFilter.get() == "On":
-                        self.main_window.LoadFilter = True
+                if self.txt_ResetFilterStartup.get() == "On":
+                        self.main_window.ResetFilterStartup = True
                 else:
-                        self.main_window.LoadFilter = False
+                        self.main_window.ResetFilterStartup = False
                 if self.txt_InstantSearch.get() == "On":
                         self.main_window.InstantSearch = True
                         #Enables bindings if set to 'On'
