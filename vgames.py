@@ -14,7 +14,6 @@ from ttkwidgets.autocomplete import AutocompleteCombobox, AutocompleteEntryListb
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import pandas as pd
-import re
 
 #Makes a backup copy of the vgames.db file
 if os.path.exists('vgames.db'):
