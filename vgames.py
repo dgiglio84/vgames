@@ -14,6 +14,7 @@ from ttkwidgets.autocomplete import AutocompleteCombobox, AutocompleteEntryListb
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import pandas as pd
+import re
 
 #Makes a backup copy of the vgames.db file
 if os.path.exists('vgames.db'):
@@ -174,6 +175,7 @@ class main_window:
 
                 #Creates SEARCH WEB pop-up Menu
                 self.popup_search_web = Menu(master, tearoff = 0)
+
                 self.popup_search_web.add_command(label="Google", command=lambda: self.search_web (self.games_list.focus(), "Google"))
                 self.popup_search_web.add_separator()
                 self.popup_search_web.add_command(label="YouTube", command=lambda: self.search_web (self.games_list.focus(), "YouTube"))
@@ -828,8 +830,11 @@ class main_window:
 
                 #Finds System Name and Title of selected game
                 result = database().fetchone("SELECT tbl_System.SystemName, Title FROM tbl_Games LEFT JOIN tbl_System ON tbl_System.SystemID = tbl_Games.SystemID Where GameID = ?", (GameID,))
+
                 SystemName = result[0]
-                Title = result[1]
+                TitleResult = result[1]
+                #Removes '&' from Title
+                Title = ''.join(e for e in TitleResult if e != "&")
 
                 #Sets URL based on selection
                 if Website == "Google":
@@ -1417,7 +1422,10 @@ class game_info_window:
                         messagebox.showwarning ("Search Web", "You must fill out both System and Title!")
                         return
                 
-                webbrowser.open("https://www.google.com/search?q=" + Title + " " + SystemName)
+                #Removes '&' from Title
+                TitleUpdated = ''.join(e for e in Title if e != "&")
+
+                webbrowser.open("https://www.google.com/search?q=" + TitleUpdated + " " + SystemName)
 
         def clear_Date_Started(self):
                 
