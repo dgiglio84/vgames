@@ -10,6 +10,7 @@ from tkinter import *
 from tkinter import messagebox, ttk
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkcalendar import DateEntry
+import babel.numbers
 from ttkwidgets.autocomplete import AutocompleteCombobox, AutocompleteEntryListbox
 from textwrap import wrap
 import matplotlib.pyplot as plt
@@ -223,6 +224,7 @@ class main_window:
                 #Creates EXPORT pop-up menu
                 self.popup_export = Menu(master, tearoff = 0)
                 self.popup_export.add_command(label = "CSV", command=lambda: export(self).csv())
+                # self.popup_export.add_command(label = "Excel", command=lambda: export(self).excel())
                 self.popup_export.add_command(label = "Google Sheets", command=lambda: export(self).gsheets())
 
                 #Creates BACKUP/RESTORE pop-up menu
@@ -240,9 +242,10 @@ class main_window:
                 #Creates TOOLS pop-up menu
                 self.popup_tools = Menu(master, tearoff = 0)
                 self.popup_tools.add_command(label = "Preferences", command=lambda: preferences_window(self))
-                self.popup_tools.add_cascade(label = "Export", menu=self.popup_export)
+                self.popup_tools.add_cascade(label = "Export Collection", menu=self.popup_export)
                 self.popup_tools.add_cascade(label = "Backup/Restore Database", menu=self.popup_backup)                
                 self.popup_tools.add_cascade(label = "Lists", menu=self.popup_lists)
+                self.popup_tools.add_command(label = "Hangman", command=lambda: hangman())
 
                 #Creates RIGHT CLICK pop-up menu
                 self.popup_right_click = Menu(master, tearoff = 0)
@@ -581,17 +584,17 @@ class main_window:
 
                 self.btn_tools.bind('<Control-Button-2>', lambda event: sql_query_window(self))
                 self.btn_tools.bind('<Control-Button-3>', lambda event: sql_query_window(self))
-                self.btn_hangman = Button(
-                        self.FrameButtons3,
-                        text = "Hangman",
-                        width = 13,
-                        height= 2,
-                        bg="#0000e6",
-                        fg="white",
-                        command=lambda: hangman()
-                )
+                # self.btn_hangman = Button(
+                #         self.FrameButtons3,
+                #         text = "Hangman",
+                #         width = 13,
+                #         height= 2,
+                #         bg="#0000e6",
+                #         fg="white",
+                #         command=lambda: hangman()
+                # )
 
-                self.btn_hangman.grid(row=0, column=0, padx=5, pady=5)
+                # self.btn_hangman.grid(row=0, column=0, padx=5, pady=5)
 
                 #Wish List button
                 self.btn_wishlist = Button(
@@ -628,7 +631,7 @@ class main_window:
                 SearchString = self.txt_search_bar.get()
 
                 #Disables the "Reset Filter" button if any filter is not set to "All"
-                if SystemName != "All" or Format != "All" or Progress != "All" or SearchString != "":
+                if SystemName != "All" or Format != "All" or Region != "All" or Progress != "All" or SearchString != "":
                         self.btn_resetfilter.config(state=NORMAL)
                 else:
                         self.btn_resetfilter.config(state=DISABLED)
@@ -866,13 +869,14 @@ class main_window:
         def reset_filter (self):
                 self.ProgressSelection.set("All")
                 self.FormatSelection.set("All")
+                self.RegionSelection.set("All")
                 self.system_menu_option.set("All")
                 self.txt_search_bar.delete(0, END)
                 self.update_game_list()
 
         def close_app(self):
                         
-                #Adds warning if changes are made
+                #Adds Google Sheets export warning if changes have been made
                 if self.changes and self.GoogleExitWarning:
                         response = messagebox.askyesno ("Close", "Changes have been made to the database! Would you like to update Google Sheets?")
                         if response:
@@ -2546,6 +2550,21 @@ class export:
                 response = messagebox.askyesno ("Export to CSV", "CSV file exported successfully! Would you like to open it?")
                 if response:
                         os.system ("start " + csv_export_file)
+
+        # def excel(self):
+
+        #         #Save dialog box
+        #         filedate = datetime.date.today()
+        #         excel_export_file = asksaveasfilename (initialfile = 'vgames-' + str(filedate), defaultextension=".xlsx",filetypes=[("All Files","*.*"),("Text Documents","*.txt")])
+        #         if excel_export_file == "": 
+        #                 return
+
+        #         #Exports DataFrame to Excel file
+        #         self.df.to_excel(excel_export_file)
+                
+        #         response = messagebox.askyesno ("Export to Excel", "Excel file exported successfully! Would you like to open it?")
+        #         if response:
+        #                 os.system ("start " + excel_export_file)
         
         def gsheets(self):
                 
