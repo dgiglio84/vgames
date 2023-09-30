@@ -1491,7 +1491,7 @@ class game_info_window:
                         self.txt_Genre.set(Genre)
 
                 except:
-                        messagebox.showwarning ("AutoFill", "Unable to obtain game information!")
+                        messagebox.showwarning ("AutoFill", "Unable to retrieve game information!")
                         self.game_info_window.focus_force()
                         return
 
