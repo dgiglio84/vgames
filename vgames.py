@@ -1454,11 +1454,10 @@ class game_info_window:
                 page = requests.get(search_url)
                 soup = BeautifulSoup(page.content, "html.parser")
 
-                #Grabs first URL from list of results (game article)
                 try:
+                        #Grabs the first URL from list of results (which is typically an article about the game)
                         wiki_results = soup.find("div", class_ = "mw-search-result-heading")
                         url = "https://en.wikipedia.org" + wiki_results.a.get('href')
-
 
                         #Scraping URL of game article
                         page = requests.get(url)
@@ -1484,7 +1483,7 @@ class game_info_window:
                                         Genre = info[row].text.split(',')[0]
                                 row += 1
 
-                        #Enters information in fields
+                        #Enters information in fields on Game_Info_Window
                         self.txt_year.delete(0, END)
                         self.txt_year.insert(0, Year)
                         self.txt_Company.set(Company)
