@@ -15,6 +15,8 @@ from ttkwidgets.autocomplete import AutocompleteCombobox, AutocompleteEntryListb
 from textwrap import wrap
 import matplotlib.pyplot as plt
 import pandas as pd
+from bs4 import BeautifulSoup
+import requests
 
 #Makes a backup copy of the vgames.db file
 if os.path.exists('vgames.db'):
@@ -165,7 +167,7 @@ class main_window:
 
                 self.master = master
 
-                master.geometry("1250x700")
+                master.geometry("1250x650")
                 master.title("Video Games Database")
                 master.iconbitmap("vgames.ico")
                 master.configure(bg='gray')
@@ -1009,11 +1011,21 @@ class game_info_window:
                         height= 1,
                         bg="green",
                         fg="white",
-                        command=lambda: self.search_web(self.txt_system.get(), self.txt_title.get())
-                
-                ) 
+                        command=lambda: self.search_web(self.txt_system.get(), self.txt_title.get()))
 
-                self.btn_search_web.grid(row=0, column=0)
+                self.btn_search_web.grid(row=0, column=0, padx=5)
+
+                self.btn_autofill = Button(
+                        self.framesearch,
+                        text = "AutoFill",
+                        width = 10,
+                        height= 1,
+                        bg="blue",
+                        fg="white",
+                        command=lambda: self.autofill(self.txt_system.get(), self.txt_title.get())) 
+                
+                self.btn_autofill.grid(row=0, column=1, padx=5)
+
 
                 self.lbl_year = Label (self.framegameinfo, text= "Year:", fg="white", bg="black")
                 self.lbl_year.grid(row = 1, column=0, sticky=E, padx = 5)
@@ -1423,12 +1435,66 @@ class game_info_window:
         def search_web(self, SystemName, Title):
                 if SystemName == "" or Title == "":
                         messagebox.showwarning ("Search Web", "You must fill out both System and Title!")
+                        self.game_info_window.focus_force()
                         return
                 
                 #Removes '&' from Title
                 TitleUpdated = ''.join(e for e in Title if e != "&")
 
                 webbrowser.open("https://www.google.com/search?q=" + TitleUpdated + " " + SystemName)
+        
+        def autofill(self, SystemName, Title):
+                if SystemName == "" or Title == "":
+                        messagebox.showwarning ("AutoFill", "You must fill out both System and Title!")
+                        self.game_info_window.focus_force()
+                        return
+                
+                #Wikipedia Search URL
+                search_url = "https://en.wikipedia.org/wiki/Special:Search?go=Go&search=" + SystemName + " " + Title
+                page = requests.get(search_url)
+                soup = BeautifulSoup(page.content, "html.parser")
+
+                #Grabs first URL from list of results (game article)
+                try:
+                        wiki_results = soup.find("div", class_ = "mw-search-result-heading")
+                        url = "https://en.wikipedia.org" + wiki_results.a.get('href')
+
+
+                        #Scraping URL of game article
+                        page = requests.get(url)
+                        soup = BeautifulSoup(page.content, "html.parser")
+
+                        #'Labels' = Left side of game info column. 'Info" = Right side of game info column.
+                        labels = soup.find_all("th", class_ = "infobox-label")
+                        info = soup.find_all("td", class_ = "infobox-data")
+
+                        #Cycles through game info on Wikipedia page and sets variables based on label.
+                        row = 0
+                        for label in labels:
+                                if "Release" in label.text:
+                                        Release_Results = info[row].text.split()
+                                        #Cycles through each line in 'Release' section and finds the first year available
+                                        for Result in Release_Results:
+                                                if  (len(Result) >= 4) and (Result[0:4].isnumeric() == True):
+                                                        Year = Result[0:4]
+                                                        break
+                                if "Developer" in label.text:
+                                        Company = info[row].text.split()[0]
+                                if "Genre" in label.text:
+                                        Genre = info[row].text.split(',')[0]
+                                row += 1
+
+                        #Enters information in fields
+                        self.txt_year.delete(0, END)
+                        self.txt_year.insert(0, Year)
+                        self.txt_Company.set(Company)
+                        self.txt_Genre.set(Genre)
+
+                except:
+                        messagebox.showwarning ("AutoFill", "Unable to obtain game information!")
+                        self.game_info_window.focus_force()
+                        return
+
 
         def clear_Date_Started(self):
                 
