@@ -1,6 +1,6 @@
 <b>NOTE: Please read the <i>Install.txt</i> file for installation instructions.</b>
 
-<b> For a list of changes, please read the <i>changelog.md</i> file.
+<b> For a list of changes, please read the <i>changelog.md</i> file.</b>
 
 This application allows you to create an inventory of your game collection, and track your gameplay progress. Features include:
 -Switch between two main views: Game Info and Stats.
