@@ -1,5 +1,3 @@
-<b>NOTE: Please read the <i>Install.txt</i> file for installation instructions.</b>
-
 <b> For a list of changes, please read the <i>changelog.md</i> file.</b>
 
 This application allows you to create an inventory of your game collection, and track your gameplay progress. Features include:
@@ -12,3 +10,10 @@ This application allows you to create an inventory of your game collection, and 
 - View charts to track gameplay progess.
 - AutoFill game information.
 - Save view on exit.
+
+<b>Installation:</b>
+
+1. Download and install Python: https://www.python.org/downloads/
+2. Download all files from repository. Extract them in the same folder.
+3. Run the "Install_Libraries.bat" batch file to install dependencies.
+4. Run "vgames.py" using Python.
