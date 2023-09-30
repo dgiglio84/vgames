@@ -1,14 +1,14 @@
 <b> For a list of changes, please read the [changelog.md](changelog.md) file.</b>
 
 This application allows you to create an inventory of your game collection, and track your gameplay progress. Features include:
-- Switch between two main views: Game Info and Stats.
+- Switch between two main views: <i>Game Info</i> and <i>Stats</i>.
 - Filter by System, Format, Region, etc.
-- Wish list
-- Systems, Genres, and Companies are saved for future use.
+- Save Systems, Genres, and Companies fields for future use.
 - Export database to CSV or Google Sheets.
 - Backup and restore database.
 - View charts to track gameplay progess.
-- AutoFill game information.
+- Create a simple Wish list.
+- Use AutoFill to retrieve game information.
 - Save view settings on exit.
 
 <b>Installation:</b>
