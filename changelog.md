@@ -4,7 +4,7 @@
 
 9-30-2023
 - Added an "AutoFill" button to the game info window. This will attempt to scrape Year, Company, and Genre data from Wikpedia.
-- 
+  
 6-16-2023
 - Added additional changes to the <i>Notes</i> field:
   1. The field can now contain multiple lines.
