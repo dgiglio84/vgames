@@ -1,6 +1,8 @@
 <b> For a list of changes, please read the [changelog.md](changelog.md) file.</b>
 
-This application allows you to create an inventory of your game collection, and track your gameplay progress. Features include:
+This application allows you to create an inventory of your game collection, and track your gameplay progress. 
+
+<b>Features:</b>
 - Switch between two main views: <i>Game Info</i> and <i>Stats</i>.
 - Filter by System, Format, Region, etc.
 - Save Systems, Genres, and Companies fields for future use.
