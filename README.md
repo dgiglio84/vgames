@@ -2,6 +2,8 @@
 
 This application allows you to create an inventory of your game collection, and track your gameplay progress. 
 
+![image](https://github.com/dgiglio84/vgames/assets/120340086/78a1fc6a-b578-4f2e-a27b-f7bc52972c37)
+
 <b>Features:</b>
 - Switch between two main views: <i>Game Info</i> and <i>Stats</i>.
 - Filter by System, Format, Region, etc.
