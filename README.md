@@ -1,6 +1,6 @@
 <b> For a list of changes, please read the [changelog.md](changelog.md) file.</b>
 
-This application allows you to create a database of your game collection, and track your gameplay progress.
+This application allows you to create an inventory of your video game collection. Additionally, it can be used to track your gameplay progress.
 ![image](https://github.com/dgiglio84/vgames/assets/120340086/78a1fc6a-b578-4f2e-a27b-f7bc52972c37)
 ![image](https://github.com/dgiglio84/vgames/assets/120340086/e31c1f86-af22-4673-91a5-7ca56469d86d)
 
@@ -30,7 +30,6 @@ This application allows you to create a database of your game collection, and tr
 - Export database to CSV or Google Sheets.
 - Backup and restore database.
 - Save view settings on exit.
-- Switch between two main views: <i>Game Info</i> and <i>Stats</i>:
 
 <b>Installation:</b>
 
