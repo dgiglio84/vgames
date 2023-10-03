@@ -2,6 +2,7 @@
 
 This application allows you to create a database of your game collection, and track your gameplay progress.
 ![image](https://github.com/dgiglio84/vgames/assets/120340086/78a1fc6a-b578-4f2e-a27b-f7bc52972c37)
+![image](https://github.com/dgiglio84/vgames/assets/120340086/e31c1f86-af22-4673-91a5-7ca56469d86d)
 
 <b>Main Features:</b>
 
