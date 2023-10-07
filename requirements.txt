@@ -21,7 +21,7 @@ oauthlib==3.2.2
 packaging==21.3
 pandas==1.5.1
 pefile==2023.2.7
-Pillow==9.2.0
+Pillow==10.0.1
 pipreqs==0.4.13
 proxy-tools==0.1.0
 pycparser==2.21
