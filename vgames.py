@@ -169,7 +169,12 @@ class main_window:
 
                 master.geometry("1250x650")
                 master.title("Video Games Database")
-                master.iconbitmap("vgames.ico")
+                LOGO_PATH = "vgames.ico"
+                LOGO_LINUX_PATH = "@vgames.xbm"
+                if os.name == "posix":
+                        master.iconbitmap(LOGO_LINUX_PATH)
+                else:
+                        master.iconbitmap(LOGO_PATH)
                 master.configure(bg='gray')
                 master.protocol("WM_DELETE_WINDOW", self.close_app)
 
