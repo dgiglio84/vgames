@@ -2728,7 +2728,7 @@ class stats:
                 else:
                         Title = "Progress - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Progress.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()
@@ -2740,7 +2740,7 @@ class stats:
                         Title = "Highest Playtime - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                               
                 self.df = self.df.sort_values(by=['Playtime'], ascending=True)
 
@@ -2765,7 +2765,7 @@ class stats:
                         Title = "Total Days - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                               
                 self.df = self.df.sort_values(by=['Total_Days'], ascending=True)
 
@@ -2790,7 +2790,7 @@ class stats:
                         Title = "Total Games by Genre - " + self.SystemName
                 
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 GenreCount = self.df.Genre.value_counts(ascending=True)
                 GenreCount.plot(kind='barh')
                 plt.title(Title)
@@ -2808,7 +2808,7 @@ class stats:
                 else:
                         Title = "Games By Format - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Format.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()
@@ -2819,7 +2819,7 @@ class stats:
                 else:
                         Title = "Games By Region - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Region.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()     
@@ -2831,7 +2831,7 @@ class stats:
                         Title = "Total Games by Decade - " + self.SystemName
 
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')         
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)         
             
                 #Converts year to a decade
                 decade = self.df.value_counts((self.df.Year//10)*10).sort_index(ascending=False)
@@ -2856,7 +2856,7 @@ class stats:
                                 
                 Title = "Total Games Per System"
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 TotalGames = self.df.System.value_counts(ascending=True)
                 TotalGames.plot(kind='barh')
                 plt.title(Title)
@@ -2875,7 +2875,7 @@ class stats:
                         Title = "Top 10 Companies - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
 
                 Top10Companies = self.df.Company.value_counts(ascending=True).tail(10)
                 Top10Companies.plot(kind='barh')
