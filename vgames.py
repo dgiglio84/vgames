@@ -22,6 +22,12 @@ import requests
 if os.path.exists('vgames.db'):
         shutil.copyfile( 'vgames.db' , 'vgames.old.db' )
 
+# Determine the OS appropriate file for icons:
+if os.name == "posix":
+        LOGO_PATH = "@vgames.xbm"
+else:
+        LOGO_PATH = "vgames.ico"
+
 class database:
         def __init__ (self):
                 self.conn = sqlite3.connect('vgames.db')
@@ -169,9 +175,6 @@ class main_window:
 
                 master.geometry("1250x650")
                 master.title("Video Games Database")
-                LOGO_PATH = "vgames.ico"
-                if os.name == "posix":
-                        LOGO_PATH = "@vgames.xbm"
                 master.iconbitmap(LOGO_PATH)
                 master.configure(bg='gray')
                 master.protocol("WM_DELETE_WINDOW", self.close_app)
