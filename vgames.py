@@ -2216,7 +2216,7 @@ class hangman:
                 self.hangman_window.iconbitmap(LOGO_PATH)
                 self.hangman_window.title("Hangman")
                 self.hangman_window.configure(bg='#404040')
-                self.hangman_window.state("zoomed")
+                self.hangman_window.attributes('-zoomed', True)
 
                 #Frames
                 self.frametop=LabelFrame(self.hangman_window, padx=100, pady=10, bg = 'black')
