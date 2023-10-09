@@ -1,3 +1,5 @@
+# Video Games Database
+
 <b> For a list of changes, please read the [changelog.md](changelog.md) file.</b>
 
 This application allows you to create an inventory of your video game collection. Additionally, it can be used to track your gameplay progress.
