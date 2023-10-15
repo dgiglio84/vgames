@@ -22,6 +22,12 @@ import requests
 if os.path.exists('vgames.db'):
         shutil.copyfile( 'vgames.db' , 'vgames.old.db' )
 
+# Determine the OS appropriate file for icons:
+if os.name == "posix":
+        LOGO_PATH = "@vgames.xbm"
+else:
+        LOGO_PATH = "vgames.ico"
+
 class database:
         def __init__ (self):
                 self.conn = sqlite3.connect('vgames.db')
@@ -169,7 +175,7 @@ class main_window:
 
                 master.geometry("1250x650")
                 master.title("Video Games Database")
-                master.iconbitmap("vgames.ico")
+                master.iconbitmap(LOGO_PATH)
                 master.configure(bg='gray')
                 master.protocol("WM_DELETE_WINDOW", self.close_app)
 
@@ -953,7 +959,7 @@ class game_info_window:
                 #Draws Game Info Window
                 self.game_info_window=Toplevel()
                 self.game_info_window.geometry("725x475")
-                self.game_info_window.iconbitmap("vgames.ico")
+                self.game_info_window.iconbitmap(LOGO_PATH)
                 self.game_info_window.configure(bg='#404040')
                 self.game_info_window.bind('<Escape>', lambda event: self.game_info_window.destroy())
         
@@ -1521,7 +1527,7 @@ class wish_list_window:
 
                 self.wish_list_window=Toplevel()
                 self.wish_list_window.geometry("625x425")
-                self.wish_list_window.iconbitmap("vgames.ico")
+                self.wish_list_window.iconbitmap(LOGO_PATH)
                 self.wish_list_window.configure(bg='#404040')
                 self.wish_list_window.title("Wish List")
                 self.wish_list_window.protocol("WM_DELETE_WINDOW")
@@ -1781,7 +1787,7 @@ class random_game_window:
                 self.random_game_window=Toplevel()
                 self.random_game_window.geometry("450x150")
                 self.random_game_window.title("Random Game")
-                self.random_game_window.iconbitmap("vgames.ico")
+                self.random_game_window.iconbitmap(LOGO_PATH)
                 self.random_game_window.configure(bg='#404040')
 
                 self.frametop=LabelFrame(self.random_game_window, padx=5, pady=5, bg = 'black')
@@ -1855,7 +1861,7 @@ class edit_lists_window:
                 self.edit_lists_window=Toplevel()
                 self.edit_lists_window.geometry("350x175")
                 self.edit_lists_window.title("Edit Lists")
-                self.edit_lists_window.iconbitmap("vgames.ico")
+                self.edit_lists_window.iconbitmap(LOGO_PATH)
                 self.edit_lists_window.configure(bg='#404040')
 
                 self.frametop=LabelFrame(self.edit_lists_window, padx=10, pady=10, bg = 'black')
@@ -1960,7 +1966,7 @@ class preferences_window:
                 self.preferences_window=Toplevel()
                 self.preferences_window.geometry("625x350")
                 self.preferences_window.title("Preferences")
-                self.preferences_window.iconbitmap("vgames.ico")
+                self.preferences_window.iconbitmap(LOGO_PATH)
                 self.preferences_window.configure(bg='#404040')
                 
                 self.frametop=LabelFrame(self.preferences_window, padx=10, pady=10, fg='yellow', bg = 'black')
@@ -2145,7 +2151,7 @@ class sql_query_window:
                 self.sql_query_window=Toplevel()
                 self.sql_query_window.geometry("500x150")
                 self.sql_query_window.title("Execute SQL Query")
-                self.sql_query_window.iconbitmap("vgames.ico")
+                self.sql_query_window.iconbitmap(LOGO_PATH)
                 self.sql_query_window.configure(bg='#404040')
 
                 self.frametop=LabelFrame(self.sql_query_window, padx=10, pady=10, bg = 'black')
@@ -2207,10 +2213,10 @@ class hangman:
                 #Draws Hangman Window
                 self.hangman_window=Toplevel()
                 self.hangman_window.geometry("750x500")
-                self.hangman_window.iconbitmap("vgames.ico")
+                self.hangman_window.iconbitmap(LOGO_PATH)
                 self.hangman_window.title("Hangman")
                 self.hangman_window.configure(bg='#404040')
-                self.hangman_window.state("zoomed")
+                self.hangman_window.attributes('-zoomed', True)
 
                 #Frames
                 self.frametop=LabelFrame(self.hangman_window, padx=100, pady=10, bg = 'black')
@@ -2722,7 +2728,7 @@ class stats:
                 else:
                         Title = "Progress - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Progress.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()
@@ -2734,7 +2740,7 @@ class stats:
                         Title = "Highest Playtime - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                               
                 self.df = self.df.sort_values(by=['Playtime'], ascending=True)
 
@@ -2759,7 +2765,7 @@ class stats:
                         Title = "Total Days - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                               
                 self.df = self.df.sort_values(by=['Total_Days'], ascending=True)
 
@@ -2784,7 +2790,7 @@ class stats:
                         Title = "Total Games by Genre - " + self.SystemName
                 
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 GenreCount = self.df.Genre.value_counts(ascending=True)
                 GenreCount.plot(kind='barh')
                 plt.title(Title)
@@ -2802,7 +2808,7 @@ class stats:
                 else:
                         Title = "Games By Format - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Format.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()
@@ -2813,7 +2819,7 @@ class stats:
                 else:
                         Title = "Games By Region - " + self.SystemName
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 self.df.Region.value_counts(sort=False).plot(kind='pie', autopct='%1.2f%%', ylabel='', shadow=True)           
                 plt.title(Title)
                 plt.show()     
@@ -2825,7 +2831,7 @@ class stats:
                         Title = "Total Games by Decade - " + self.SystemName
 
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')         
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)         
             
                 #Converts year to a decade
                 decade = self.df.value_counts((self.df.Year//10)*10).sort_index(ascending=False)
@@ -2850,7 +2856,7 @@ class stats:
                                 
                 Title = "Total Games Per System"
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
                 TotalGames = self.df.System.value_counts(ascending=True)
                 TotalGames.plot(kind='barh')
                 plt.title(Title)
@@ -2869,7 +2875,7 @@ class stats:
                         Title = "Top 10 Companies - " + self.SystemName
                         
                 plt.figure(Title)
-                plt.get_current_fig_manager().window.state('zoomed')
+                plt.get_current_fig_manager().window.attributes('-zoomed', True)
 
                 Top10Companies = self.df.Company.value_counts(ascending=True).tail(10)
                 Top10Companies.plot(kind='barh')
